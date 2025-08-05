@@ -1,0 +1,31 @@
+/* Custom table styles */
+.custom-table thead {
+    background-color: white;
+    color: black;
+}
+
+.custom-table tbody {
+    background: linear-gradient(to bottom, white, #f5f5f5);
+}
+
+.custom-table .bg-warning {
+    background-color: #ff9800 !important; /* Yellow-Orange */
+    color: #fff; /* Make sure text is visible */
+}
+
+.custom-table .bg-danger {
+    background-color: #f44336 !important; /* Red */
+    color: white; /* Make sure text is visible */
+}
+
+/* Optional: You can customize table row hover effects */
+.custom-table tbody tr:hover {
+    background-color: #ddd;
+}
+
+.custom-table tbody tr td {
+    padding: 8px;
+    border: 1px solid silver;
+    color: #fff !important;
+    font-size: 18px;
+}
