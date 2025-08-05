@@ -1,0 +1,77 @@
+{
+  "scripts": {
+    "start": "NODE_OPTIONS=--openssl-legacy-provider react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "@babel/eslint-parser": "^7.26.8",
+    "@babel/preset-env": "^7.26.9",
+    "@popperjs/core": "^2.11.8",
+    "add": "^2.0.6",
+    "ag-grid-community": "30.2.1",
+    "ag-grid-react": "30.2.1",
+    "axios": "^1.7.9",
+    "bootstrap": "^5.3.7",
+    "eslint": "^9.21.0",
+    "eslint-webpack-plugin": "^5.0.0",
+    "font-awesome": "^4.7.0",
+    "framer-motion": "^12.23.0",
+    "install": "^0.13.0",
+    "jquery": "^3.7.1",
+    "lucide-react": "^0.476.0",
+    "mdb-react-ui-kit": "^9.0.0",
+    "multiselect-react-dropdown": "^2.0.25",
+    "punycode": "^2.3.1",
+    "raphael": "^2.3.0",
+    "react": "18.2.0",
+    "react-bootstrap": "^2.10.8",
+    "react-dom": "18.2.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.2.0",
+    "react-scripts": "^5.0.1",
+    "react-toastify": "^11.0.5",
+    "react-tooltip": "^5.28.0",
+    "recharts": "^3.1.0",
+    "sass": "^1.89.2",
+    "web-vitals": "^4.2.4",
+    "webpack-cli": "^6.0.1",
+    "yarn": "^1.22.22"
+  },
+  "babel": {
+    "presets": [
+      "react-app"
+    ],
+    "plugins": [
+      [
+        "@babel/plugin-transform-runtime"
+      ],
+      [
+        "@babel/plugin-proposal-private-methods",
+        {
+          "loose": true
+        }
+      ]
+    ]
+  },
+  "packageManager": "yarn@1.22.22",
+  "devDependencies": {
+    "@types/react": "19.0.10",
+    "@types/react-dom": "19.0.4"
+  },
+  "license": "UNLICENSED",
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ],
+    "proxy": "http://localhost:8080"
+  }
+}
