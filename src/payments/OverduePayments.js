@@ -169,12 +169,7 @@ const OverduePayments = () => {
 
                                             </a>
                                         </td>
-                                        <td> <a onClick={(e) => {
-                                                e.preventDefault();
-                                                navigate(`/dashboard/${payment?.user?.id}`);
-                                            }}
-                                                style={{ cursor: "pointer", textDecoration: "underline", color: "blue" }}
-                                                href="#">{payment?.user?.name} </a></td>
+                                        <td>{payment?.user?.name} </td>
                                         <td>{payment?.user?.seat} / {payment?.user?.shift}</td>
                                         <td>{payment?.user?.mobile}</td>
                                         <td>{payment?.amount}</td>
