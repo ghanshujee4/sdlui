@@ -7,6 +7,7 @@ import "./Overdue.css";  // Ensure to import the CSS for custom styles
 import { FaPrint, FaFileDownload, FaDashcube, FaWhatsapp } from 'react-icons/fa';
 import WhatsAppLink from '../utils/WhatsAppLink';
 import PhoneCallLink from '../utils/PhoneCallLink';
+import PaymentQR from '../utils/PaymentQR';
 const OverduePayments = () => {
     // State to store the overdue payments
     const [overduePayments, setOverduePayments] = useState([]);
@@ -140,6 +141,7 @@ const OverduePayments = () => {
                             <th>Due Date</th>
                             <th>Alert</th>
                             <th>Call</th>
+                            <th>Pay</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -170,19 +172,28 @@ const OverduePayments = () => {
                                             </a>
                                         </td>
                                         <td> <a onClick={(e) => {
-                                                e.preventDefault();
-                                                navigate(`/dashboard/${payment?.user?.id}`);
-                                            }}
-                                                style={{ cursor: "pointer", textDecoration: "underline", color: "blue" }}
-                                                href="#">{payment?.user?.name} </a></td>
+                                            e.preventDefault();
+                                            navigate(`/dashboard/${payment?.user?.id}`);
+                                        }}
+                                            style={{ cursor: "pointer", textDecoration: "underline", color: "blue" }}
+                                            href="#">{payment?.user?.name} </a></td>
                                         <td>{payment?.user?.seat} / {payment?.user?.shift}</td>
                                         <td>{payment?.user?.mobile}</td>
                                         <td>{payment?.amount}</td>
                                         <td>{new Date(payment?.dueDate).toLocaleDateString('en-IN')}</td>
-                                        
                                         <WhatsAppLink payment={payment} />
                                         <PhoneCallLink payment={payment} />
-
+                                        <td>
+                                            {payment.amount > 0 ? (
+                                                <PaymentQR
+                                                    userId={payment.id}
+                                                    userName={payment.user.name}
+                                                    amount={payment.amount}
+                                                />
+                                            ) : (
+                                                "No Payment"
+                                            )}
+                                        </td>
                                     </tr>
                                 );
                             })

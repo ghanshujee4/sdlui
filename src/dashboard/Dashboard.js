@@ -3,13 +3,13 @@ import axios from "axios";
 import config from "../config";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-	MDBContainer, MDBCard, MDBCardBody, MDBRow, MDBCol, MDBBtn,
-	MDBInput, MDBSelect, MDBSpinner, MDBAlert,
+	MDBContainer
 } from "mdb-react-ui-kit";
 import "../assets/plugins/animation/css/animate.min.css";
 import "../assets/css/style.css";
-import { motion } from "framer-motion";
 import StudentStatusModal from './StudentStatusModal';
+import SidebarNav from "../login/SidebarNav";
+import PaymentQR from "./../utils/PaymentQR";
 
 const Dashboard = () => {
 	const [userData, setUserData] = useState(null);
@@ -127,68 +127,7 @@ const Dashboard = () => {
 
 	return (
 		<>
-			<nav className="pcoded-navbar menupos-fixed menu-light brand-blue ">
-				<div className="navbar-warpper">
-					<div className="navbar-wrapper ">
-						<div className="navbar-brand header-logo">
-
-							<img src="../assets/images/logo.svg" alt="" className="logo images" />
-							<img src="../assets/images/logo-icon.svg" alt="" className="logo-thumb images" />
-
-							<a className="mobile-menu" id="mobile-collapse" href="#!" onClick={toggleScrollDiv}><span></span></a>
-						</div>
-
-						<motion.div
-							initial={{ opacity: 0, height: 0 }}
-							animate={{ opacity: isOpen ? 1 : 0, height: isOpen ? "auto" : 0 }}
-							transition={{ duration: 0.4, ease: "easeInOut" }} className="navbar-content scroll-div">
-							<ul className="nav pcoded-inner-navbar">
-								<li className="nav-item pcoded-menu-caption">
-									<label>Navigation</label>
-								</li>
-								<li className="nav-item">
-									<a href="#" className="nav-link"><span className="pcoded-micon"><i className="feather icon-home"></i></span><span className="pcoded-mtext">Dashboard</span></a>
-								</li>
-
-								<li className="nav-item">
-									<a href="form_elements.html" className="nav-link"><span className="pcoded-micon"><i className="feather icon-file-text"></i></span><span className="pcoded-mtext">Enrolment ID </span></a>
-								</li>
-								<li className="nav-item">
-									<a href="tbl_bootstrap.html" className="nav-link"><span className="pcoded-micon"><i className="feather icon-align-justify"></i></span><span className="pcoded-mtext">Refer and get-100 </span></a>
-								</li>
-								<li className="nav-item pcoded-menu-caption">
-									<label>Pay Due</label>
-								</li>
-								<li className="nav-item">
-									<a href="chart-morris.html" className="nav-link"><span className="pcoded-micon"><i className="feather icon-pie-chart"></i></span><span className="pcoded-mtext">Chart</span></a>
-								</li>
-								<li className="nav-item">
-									<a href="map-google.html" className="nav-link"><span className="pcoded-micon"><i className="feather icon-map"></i></span><span className="pcoded-mtext">Maps</span></a>
-								</li>
-								<li className="nav-item pcoded-menu-caption">
-									<label>Pages</label>
-								</li>
-								<li className="nav-item pcoded-hasmenu">
-									<a href="#!" className="nav-link"><span className="pcoded-micon"><i className="feather icon-lock"></i></span><span className="pcoded-mtext">Authentication</span></a>
-									<ul className="pcoded-submenu">
-										<li className=""><a href="auth-signup.html" className="" target="_blank">Register</a></li>
-										<li className=""><a href="auth-signin.html" className="" target="_blank">Sign in</a></li>
-									</ul>
-								</li>
-							</ul>
-							<div className="card text-center">
-								<div className="card-block">
-									<button type="button" className="close" data-dismiss="alert" aria-hidden="true">×</button>
-									<i className="feather icon-sunset f-40"></i>
-									<h6 className="mt-3">Shastra Digital Library</h6>
-									<p>Rate and review Your SDL</p>
-									<a href="https://g.co/kgs/TmnPniy" target="_blank" className="btn btn-gradient-primary btn-sm text-white m-0">Rate Us Here</a>
-								</div>
-							</div>
-						</motion.div>
-					</div>
-				</div>
-			</nav>
+			<SidebarNav />   {/* ✅ New extracted component */}
 
 
 
@@ -316,13 +255,21 @@ const Dashboard = () => {
 															</div>
 														</div>
 														<div className="col-6">
-															<h4 className="text-center  m-b-10"><span className="text-muted m-r-5">Shift: </span>{userData?.shift}</h4>
+															<h6 className="text-center  m-b-10"><span className="text-muted m-r-5">Shift: </span>{userData?.shift}</h6>
 															<div className="progress">
 																<div className="progress-bar progress-c-green" role="progressbar" style={{ width: "45%", height: "6px" }} aria-valuenow="45" aria-valuemin="0" aria-valuemax="100"></div>
 															</div>
 														</div>
 													</div>
 												</div>
+												<h4 className="text-center m-b-10">
+													Extra Hour {userData?.extraHour && userData.extraHour.trim() !== "" ? (
+														<>allowed : {userData.extraHour}</>
+													) : (
+														"Not Allowed"
+													)}
+												</h4>
+
 											</div>
 										</div>
 										<div className="col-md-6 col-xl-4">
@@ -334,7 +281,8 @@ const Dashboard = () => {
 														</div>
 														<div className="col text-right">
 															<h3>{userData?.purpose}</h3>
-															<h5 className="text-c-info mb-0">+6.2% <span className="text-muted">Total Likes</span></h5>
+															<h5 className="text-c-info mb-0">Next Due Date <span className="">{paymentData?.dueDate}</span></h5>
+															
 														</div>
 													</div>
 												</div>
@@ -417,11 +365,22 @@ const Dashboard = () => {
 
 																				<td>{payment.id}</td>
 																				<td>{payment.amount}</td>
-																				<td>{payment.dueDate ? new Date(payment.dueDate).toLocaleDateString("en-GB") : "N/A"}</td>
+																				<td>{payment.dueDate ? new Date(payment.dueDate).toLocaleDateString("en-IN") : "N/A"}</td>
 																				<td>{payment.monthPaid ? new Date(payment.monthPaid).toLocaleDateString("en-GB") : "N/A"}</td>
 																				<td>{payment.paid ? "Paid" : "Payment Due"}</td>
 																				<td>{payment.user.name}</td>
 																				<td>{payment.user.email}</td>
+																				<td>
+																					{payment.amount > 0 ? (
+																						<PaymentQR
+																							userId={payment.id}
+																							userName={payment.user.name}
+																							amount={payment.amount}
+																						/>
+																					) : (
+																						"No Payment"
+																					)}
+																				</td>
 																			</tr>
 																		))}
 																	</tbody>

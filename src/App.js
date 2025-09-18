@@ -17,12 +17,11 @@ import AdminLogin from './login/AdminLogin';
 import Payments from './payments/Payments';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // Includes Popper.js
-// import AdminProtectedRoute from './dashboard/AdminProtectedRoute';
 import PrivateRoute from './dashboard/PrivateRoute';
 import OverduePayments from './payments/OverduePayments';
 import SeatFullInfoPage from './dashboard/SeatFullInfoPage';
-import ChartDashboard from './dashboard/ChartDashboard';
-import DashboardChart from './dashboard/DashboardChart';
+import DashboardChart from './charts/DashboardChart';
+import PaymentDashboard from './charts/PaymentDashboard';
 
 
 function App() {
@@ -74,6 +73,7 @@ function App() {
       {/* <div className="bg-red-500 text-white p-4">
       <h1 className='color' style={{color:'#000', cursor:'pointer'}} onClick={redHome}>Shastra Digital Library</h1>
     </div> */}
+    <div className='container-fluid'>
       <Routes>
         <Route path="/" element={<StudentRegistration />} />
         <Route path="/studentregistrationpopup" element={<StudentRegistrationPopup />} />
@@ -95,7 +95,9 @@ function App() {
         <Route path="/payments/:userId" element={<Payments />} />
         <Route path="/SeatFullInfoPage" element={<SeatFullInfoPage />} />
         <Route path="/chartdashboard" element={<DashboardChart />} />
+        <Route path='/PaymentDashboard' element={<PaymentDashboard />} />
       </Routes>
+      </div>
     </div>
 
   );

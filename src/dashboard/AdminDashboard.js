@@ -148,10 +148,14 @@ const AdminDashboard = () => {
       .catch((error) => console.error("Error updating user:", error));
   };
   
-  const filteredUsers = users
-  .slice() // make a copy to avoid mutating the original array
+const filteredUsers = users
+  .slice()
   .sort((a, b) => {
-    // Ensure both seat values are valid numbers for comparison
+    // Step 1: Registered users first
+    if (a?.isRegistered === 'Y' && b?.isRegistered !== 'Y') return -1;
+    if (a?.isRegistered !== 'Y' && b?.isRegistered === 'Y') return 1;
+
+    // Step 2: Sort by seat number inside group
     const seatA = parseInt(a?.seat || 0, 10);
     const seatB = parseInt(b?.seat || 0, 10);
     return seatA - seatB;
@@ -234,6 +238,11 @@ const AdminDashboard = () => {
     Unregistered: {unregisteredUsers.length}
   </Card>
 </div>
+<div className="mb-3 col-sm-2 float-left">
+  <Card className="badge bg-danger text-wrap select2-container" style={{ fontSize: '22px', cursor: 'pointer' }} onClick={() => navigate("/chartdashboard")}>
+    Chart Board 
+  </Card>
+</div>
 <div className="table-responsive">
       <table className="table table-striped table-responsive-sm">
         <thead>
@@ -247,6 +256,7 @@ const AdminDashboard = () => {
             <th>Mobile</th>
             <th>Shift</th>
             <th>Seat</th>
+            <th>Extra Hour</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -377,6 +387,22 @@ const AdminDashboard = () => {
                   ) : (
                     user?.seat
                   )}
+                </td>
+                 <td>
+                  {editingUser === user?.id ? (
+                    <input
+                      type="text"
+                      name="extraHour"
+                      value={editFormData.extraHour}
+                      onChange={handleEditChange}
+                      className="form-control"
+                    // onClick={updatePayment}
+
+                    />
+                  ) : (
+                    user?.extraHour
+                  )}
+
                 </td>
                 <td>
                   {editingUser === user?.id ? (

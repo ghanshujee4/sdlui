@@ -6,13 +6,11 @@ import { useNavigate } from "react-router-dom";
 import MultiSelect from "./MultiSelect";
 import {
   MDBBtn,
-  MDBContainer,
-  MDBRow,
-  MDBCol,
   MDBCard,
   MDBCardBody,
   MDBInput,
-  MDBTextArea
+  MDBTextArea,
+  MDBTooltip
 }
   from 'mdb-react-ui-kit';
 const StudentRegistration = () => {
@@ -28,6 +26,7 @@ const StudentRegistration = () => {
     adhar: "",
     password: "",
     admissionDate: new Date().toISOString().split("T")[0],
+    extraHour: "",
   });
   const anyday = (date) => date.toISOString().split("T")[0];
   const today = anyday(new Date()); // Get current date in YYYY-MM-DD format
@@ -41,7 +40,7 @@ const StudentRegistration = () => {
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [fileName, setFileName] = useState("No Aadhar uploaded");
-
+  // const [updatedshift, setUpdatedshift] = useState([]);
   const [adharFile, setAdharFile] = useState(null);
 
   // const handleFileChange = (e) => {
@@ -60,34 +59,42 @@ const StudentRegistration = () => {
   // };
 
   const handleFileChange = (e) => {
-  const file = e.target.files[0];
+    const file = e.target.files[0];
 
-  if (!file) {
-    // File is optional
-    setFileName("No Aadhar uploaded");
+    if (!file) {
+      // File is optional
+      setFileName("No Aadhar uploaded");
+      setErrors({ ...errors, adharFile: "" });
+      setAdharFile(null);
+      return;
+    }
+
+    const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+    if (!allowedTypes.includes(file.type)) {
+      setErrors({ ...errors, adharFile: "Only JPG, PNG, or PDF files are allowed" });
+      setAdharFile(null);
+      return;
+    }
+
+    setFileName(file.name);
     setErrors({ ...errors, adharFile: "" });
-    setAdharFile(null);
-    return;
-  }
-
-  const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
-  if (!allowedTypes.includes(file.type)) {
-    setErrors({ ...errors, adharFile: "Only JPG, PNG, or PDF files are allowed" });
-    setAdharFile(null);
-    return;
-  }
-
-  setFileName(file.name);
-  setErrors({ ...errors, adharFile: "" });
-  setAdharFile(file);
-};
+    setAdharFile(file);
+  };
 
 
   // Fetch shifts and seats
   useEffect(() => {
     axios
       .get(`${config.BASE_URL}/shifts`)
-      .then((response) => setShifts(response.data))
+      .then((response) =>
+      // setShifts(response.data))
+      {
+        const updatedShifts = response.data.map((shift) => ({
+          ...shift,
+          displayName: `${shift.name} ${shiftTimings[shift.id] || ""}`, // attach static time
+        }));
+        setShifts(updatedShifts);
+      })
       .catch((error) => console.error("Error fetching shifts:", error));
   }, []);
 
@@ -216,17 +223,27 @@ const StudentRegistration = () => {
     return isValid;
   };
 
-  const handleShiftSelect = (selectedList) => {
-    setFormData({ ...formData, shift: selectedList });
-    const selectedNames = selectedList.map(item => item.name).join(", "); // Join selected shift names
-    setSelectedShift(selectedNames); // Update selectedShift state
-  };
+const handleShiftSelect = (selectedList) => {
+  // Convert selected items back to {id, name} form
+  const cleanList = selectedList.map(sel => {
+    const found = shifts.find(s => s.id === sel.id);
+    return { id: found.id, name: found.name }; // keep only clean data
+  });
 
-  const handleRemove = (selectedList) => {
-    setFormData({ ...formData, shift: selectedList });
-    const selectedNames = selectedList.map(item => item.name).join(", ");
-    setSelectedShift(selectedNames);
-  };
+  setFormData({ ...formData, shift: cleanList });
+  setSelectedShift(cleanList.map(s => s.id).join(",")); // useful for seats API
+};
+
+const handleRemove = (selectedList) => {
+  const cleanList = selectedList.map(sel => {
+    const found = shifts.find(s => s.id === sel.id);
+    return { id: found.id, name: found.name };
+  });
+
+  setFormData({ ...formData, shift: cleanList });
+  setSelectedShift(cleanList.map(s => s.id).join(","));
+};
+
 
 
   const handleSubmit = async (e) => {
@@ -251,10 +268,11 @@ const StudentRegistration = () => {
       adhar: formData?.adhar,
       address: formData?.address,
       purpose: formData?.purpose,
-      shift: formData?.shift.map(s => s.name).join(","), // Convert shift array to "1,2"
+      shift: formData?.shift.map(s => s.id).join(","), // Convert shift array to "1,2"
       seat: formData?.seat,
       password: formData?.password,
       admissionDate: formData?.admissionDate,
+      extraHour: formData?.extraHour,
     };
 
     formDataToSend.append("user", new Blob([JSON.stringify(userData)], { type: "application/json" }));
@@ -286,13 +304,32 @@ const StudentRegistration = () => {
     }
   };
 
-  const formatShiftName = (shiftName) => {
-    if (!shiftName) return "Ask SDL"; // Handle undefined shift names
-    if (shiftName === "1") return "1st Shift";
-    if (shiftName === "2") return "2nd Shift";
-    if (shiftName === "3") return "3rd Shift";
-    return `${shiftName}th Shift`; // Default for other numbers
+  // Define static timings for each shift ID
+  const shiftTimings = {
+    1: "(7:00 AM - 12:00 PM)",
+    2: "(12:00 PM - 5:00 PM)",
+    3: "(5:00 PM - 10:00 PM)",
+    4: "(9:00 AM - 2:30 PM)",
+    5: "(2:00 PM - 7:30 PM)",
   };
+
+  // Fetch shifts and append timings for display
+  useEffect(() => {
+    axios
+      .get(`${config.BASE_URL}/shifts`)
+      .then((response) => {
+        const updatedShifts = response.data.map((shift) => ({
+          id: shift.id,
+          value: shift.id, // save this to backend
+          name: shift.name, // plain name for backend
+          label: `${shift.name} ${shiftTimings[shift.id] || ""}`, // only for display
+        }));
+        setShifts(updatedShifts);
+
+      })
+      .catch((error) => console.error("Error fetching shifts:", error));
+  }, []);
+
 
   // Validate form fields and update `isFormValid`
   useEffect(() => {
@@ -511,7 +548,7 @@ const StudentRegistration = () => {
           <div className="col-md-12 mb-3">
             <MDBInput
               type="date"
-              label="Select Admission date"
+              label="Select Admission Date"
               value={formData?.admissionDate}
               onChange={handleChange}
               className="w-100"
@@ -530,22 +567,23 @@ const StudentRegistration = () => {
           </div>
           <div className="col-md-12 md-3">
             <MultiSelect
-              options={shifts}
-              selectedValues={formData.shift}
-              onSelect={handleShiftSelect} // Updated handler
-              onRemove={handleRemove} // Updated handler
-              error={errors.shift}
-              label="Select Shifts:"
-              name="shift"
-              key={formData.shift}
-            />
+  options={shifts.map(s => ({ id: s.value, name: s.label }))} // UI shows label with timings
+  selectedValues={formData.shift}
+  onSelect={handleShiftSelect}
+  onRemove={handleRemove}
+  error={errors.shift}
+  label="Select Shifts:"
+  name="shift"
+  key={formData.shift}
+/>
+
 
             <div>
-              <p>Selected Shifts: {formData?.selectedShift}</p>
+              <p>Selected Shifts: {formData?.selectedValues}</p>
             </div>
             {errors.shift && <div className="text-danger">{errors.shift}</div>}
           </div>
-          <div className="col-md-12 md-3">
+          <div className="col-md-12 mb-3">
             <select
               id="seat"
               name="seat"
@@ -565,6 +603,20 @@ const StudentRegistration = () => {
                 ))}
             </select>
             {errors.seat && <div className="text-danger">{errors.seat}</div>}
+          </div>
+          <div className="col-md-12 mb-3">
+            <MDBTooltip tag="span" wrapperProps={{ className: 'd-block' }} title="Enter the number of extra hours apart from regular shift. ₹100/hour">
+              <MDBInput
+                type="number"
+                id="extraHour"
+                name="extraHour"
+                value={formData?.extraHour}
+                onChange={handleChange}
+                size="lg"
+                label="Enter Extra Hour"
+              />
+            </MDBTooltip>
+            {errors.extraHour && <div className="text-danger">{errors.extraHour}</div>}
           </div>
 
 
