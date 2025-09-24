@@ -7,6 +7,7 @@ import "../assets/css/style.css"
 import { useNavigate } from "react-router-dom";
 import GrowLoader from "../utils/Growloader"; // Import loader
 import { Card } from "react-bootstrap";
+import "./../assets/glowonhover.css"
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]); // List of all users
@@ -234,12 +235,12 @@ const filteredUsers = users
 </div>
 
 <div className="mb-3 col-sm-2 float-left">
-  <Card className="badge bg-danger text-wrap select2-container" style={{ fontSize: '22px' }}>
+  <Card className="badge bg-danger text-wrap select2-container glow-on-hover" style={{ fontSize: '22px' }}>
     Unregistered: {unregisteredUsers.length}
   </Card>
 </div>
 <div className="mb-3 col-sm-2 float-left">
-  <Card className="badge bg-danger text-wrap select2-container" style={{ fontSize: '22px', cursor: 'pointer' }} onClick={() => navigate("/chartdashboard")}>
+  <Card className="badge bg-info text-wrap select2-container glow-on-hover" style={{ fontSize: '22px', cursor: 'pointer' }} onClick={() => navigate("/chartdashboard")}>
     Chart Board 
   </Card>
 </div>
@@ -391,7 +392,7 @@ const filteredUsers = users
                  <td>
                   {editingUser === user?.id ? (
                     <input
-                      type="text"
+                      type="number"
                       name="extraHour"
                       value={editFormData.extraHour}
                       onChange={handleEditChange}

@@ -87,14 +87,14 @@ const StudentRegistration = () => {
     axios
       .get(`${config.BASE_URL}/shifts`)
       .then((response) =>
-      // setShifts(response.data))
-      {
-        const updatedShifts = response.data.map((shift) => ({
-          ...shift,
-          displayName: `${shift.name} ${shiftTimings[shift.id] || ""}`, // attach static time
-        }));
-        setShifts(updatedShifts);
-      })
+      setShifts(response.data))
+      // {
+      //   const updatedShifts = response.data.map((shift) => ({
+      //     ...shift,
+      //     displayName: `${shift.name} ${shiftTimings[shift.id] || ""}`, // attach static time
+      //   }));
+      //   setShifts(updatedShifts);
+      // })
       .catch((error) => console.error("Error fetching shifts:", error));
   }, []);
 
@@ -223,28 +223,18 @@ const StudentRegistration = () => {
     return isValid;
   };
 
-const handleShiftSelect = (selectedList) => {
-  // Convert selected items back to {id, name} form
-  const cleanList = selectedList.map(sel => {
-    const found = shifts.find(s => s.id === sel.id);
-    return { id: found.id, name: found.name }; // keep only clean data
-  });
 
-  setFormData({ ...formData, shift: cleanList });
-  setSelectedShift(cleanList.map(s => s.id).join(",")); // useful for seats API
-};
+  const handleShiftSelect = (selectedList) => {
+    setFormData({ ...formData, shift: selectedList });
+    const selectedNames = selectedList.map(item => item.name).join(", "); // Join selected shift names
+    setSelectedShift(selectedNames); // Update selectedShift state
+  };
 
-const handleRemove = (selectedList) => {
-  const cleanList = selectedList.map(sel => {
-    const found = shifts.find(s => s.id === sel.id);
-    return { id: found.id, name: found.name };
-  });
-
-  setFormData({ ...formData, shift: cleanList });
-  setSelectedShift(cleanList.map(s => s.id).join(","));
-};
-
-
+  const handleRemove = (selectedList) => {
+    setFormData({ ...formData, shift: selectedList });
+    const selectedNames = selectedList.map(item => item.name).join(", ");
+    setSelectedShift(selectedNames);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -268,7 +258,7 @@ const handleRemove = (selectedList) => {
       adhar: formData?.adhar,
       address: formData?.address,
       purpose: formData?.purpose,
-      shift: formData?.shift.map(s => s.id).join(","), // Convert shift array to "1,2"
+      shift: formData?.shift.map(s => s.name).join(","), // Convert shift array to "1,2"
       seat: formData?.seat,
       password: formData?.password,
       admissionDate: formData?.admissionDate,
@@ -305,30 +295,30 @@ const handleRemove = (selectedList) => {
   };
 
   // Define static timings for each shift ID
-  const shiftTimings = {
-    1: "(7:00 AM - 12:00 PM)",
-    2: "(12:00 PM - 5:00 PM)",
-    3: "(5:00 PM - 10:00 PM)",
-    4: "(9:00 AM - 2:30 PM)",
-    5: "(2:00 PM - 7:30 PM)",
-  };
+  // const shiftTimings = {
+  //   1: "(7:00 AM - 12:00 PM)",
+  //   2: "(12:00 PM - 5:00 PM)",
+  //   3: "(5:00 PM - 10:00 PM)",
+  //   4: "(9:00 AM - 2:30 PM)",
+  //   5: "(2:00 PM - 7:30 PM)",
+  // };
 
-  // Fetch shifts and append timings for display
-  useEffect(() => {
-    axios
-      .get(`${config.BASE_URL}/shifts`)
-      .then((response) => {
-        const updatedShifts = response.data.map((shift) => ({
-          id: shift.id,
-          value: shift.id, // save this to backend
-          name: shift.name, // plain name for backend
-          label: `${shift.name} ${shiftTimings[shift.id] || ""}`, // only for display
-        }));
-        setShifts(updatedShifts);
+  // // Fetch shifts and append timings for display
+  // useEffect(() => {
+  //   axios
+  //     .get(`${config.BASE_URL}/shifts`)
+  //     .then((response) => {
+  //       const updatedShifts = response.data.map((shift) => ({
+  //         id: shift.id,
+  //         value: shift.id, // save this to backend
+  //         name: shift.name, // plain name for backend
+  //         label: `${shift.name} ${shiftTimings[shift.id] || ""}`, // only for display
+  //       }));
+  //       setShifts(updatedShifts);
 
-      })
-      .catch((error) => console.error("Error fetching shifts:", error));
-  }, []);
+  //     })
+  //     .catch((error) => console.error("Error fetching shifts:", error));
+  // }, []);
 
 
   // Validate form fields and update `isFormValid`
@@ -565,21 +555,20 @@ const handleRemove = (selectedList) => {
               disabled
             />
           </div>
-          <div className="col-md-12 md-3">
+           <div className="col-md-12 md-3">
             <MultiSelect
-  options={shifts.map(s => ({ id: s.value, name: s.label }))} // UI shows label with timings
-  selectedValues={formData.shift}
-  onSelect={handleShiftSelect}
-  onRemove={handleRemove}
-  error={errors.shift}
-  label="Select Shifts:"
-  name="shift"
-  key={formData.shift}
-/>
-
+              options={shifts}
+              selectedValues={formData.shift}
+              onSelect={handleShiftSelect} // Updated handler
+              onRemove={handleRemove} // Updated handler
+              error={errors.shift}
+              label="Select Shifts:"
+              name="shift"
+              key={formData.shift}
+            />
 
             <div>
-              <p>Selected Shifts: {formData?.selectedValues}</p>
+              <p>Selected Shifts: {formData?.selectedShift}</p>
             </div>
             {errors.shift && <div className="text-danger">{errors.shift}</div>}
           </div>
@@ -616,7 +605,6 @@ const handleRemove = (selectedList) => {
                 label="Enter Extra Hour"
               />
             </MDBTooltip>
-            {errors.extraHour && <div className="text-danger">{errors.extraHour}</div>}
           </div>
 
 
