@@ -77,8 +77,8 @@ const Login = () => {
 
           <form onSubmit={handleSubmit}>
             <MDBInput
-              label="Email address"
-              type="email"
+              label="Email address / Enrollment No."
+              // type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}

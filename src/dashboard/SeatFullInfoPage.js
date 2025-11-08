@@ -86,6 +86,14 @@ const SeatFullInfoPage = () => {
         maxWidth: 100,
         cellClass: "text-center font-semibold",
       },
+       {
+        headerName: "Extra Hours",
+        field: "extraHour",
+        sortable: false,
+        filter: true,
+        maxWidth: 100,
+        cellClass: "text-center font-semibold",
+      },
       {
         headerName: "Shift",
         field: "shift",

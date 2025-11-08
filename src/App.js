@@ -22,6 +22,14 @@ import OverduePayments from './payments/OverduePayments';
 import SeatFullInfoPage from './dashboard/SeatFullInfoPage';
 import DashboardChart from './charts/DashboardChart';
 import PaymentDashboard from './charts/PaymentDashboard';
+import ChatBox from './chat/ChatBox';
+import MailManager from './utils/MailManager';
+import VideoGenerationBox from './utils/VideoGenerationBox';
+import { useState } from 'react';
+import RequestsApproval from "./dashboard/RequestsApproval";
+import LibraryPolicy from "./sdl/LibraryPolicy";
+import ShiftSeatChangeRequest from './dashboard/ShiftSeatChangeRequest';
+import MyRequests from './dashboard/MyRequests';
 
 
 function App() {
@@ -37,17 +45,17 @@ function App() {
       <div className="header-blue">
         {/* <nav className="navbar navbar-light navbar-expand-md navigation-clean-search"> */}
         <nav className="navbar navbar-expand-md navigation-clean-search">
-          
+
           <div className="container-fluid">
-          <div>
-    <img
-      src="/logo.png"  // Ensure the logo file is inside the 'public/' folder
-      alt="Library Logo"
-      className="logo"
-      style={{ height: "60px" }} // Adjust size & spacing
-    />
-  </div>
-  <a className="gradient-text gradient-text-logo" href="#" onClick={redHome}>Shastra Digital Library</a>
+            <div>
+              <img
+                src="/logo.png"  // Ensure the logo file is inside the 'public/' folder
+                alt="Library Logo"
+                className="logo"
+                style={{ height: "60px" }} // Adjust size & spacing
+              />
+            </div>
+            <a className="gradient-text gradient-text-logo" href="#" onClick={redHome}>Shastra Digital Library</a>
             <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navcol-1">
               <span className="navbar-toggler-icon"></span>
             </button>
@@ -73,30 +81,33 @@ function App() {
       {/* <div className="bg-red-500 text-white p-4">
       <h1 className='color' style={{color:'#000', cursor:'pointer'}} onClick={redHome}>Shastra Digital Library</h1>
     </div> */}
-    <div className='container-fluid'>
-      <Routes>
-        <Route path="/" element={<StudentRegistration />} />
-        <Route path="/studentregistrationpopup" element={<StudentRegistrationPopup />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/adminlogin" element={<AdminLogin />} />
-        <Route path='/seatbooking' element={<SeatBooking />} />
-        {/* <Route path="/dashboard" element={
-      <AdminProtectedRoute>
-        <Layout> <AdminDashboard /> </Layout>
-      </AdminProtectedRoute>}/> */}
-        <Route element={<PrivateRoute />}>
-          <Route path="/admindashboard" element={<AdminDashboard />} />
-       
-        <Route path="/payments/overduepayments" element={<OverduePayments/>} />
-        </Route>
-        {/* <Route path="admindashboard" element={<AdminDashboard />} /> */}
-        <Route path="/dashboard/:userId" element={<Layout> <Dashboard />  </Layout>} />
-        <Route path="multiselect" element={<MultiSelect />} />
-        <Route path="/payments/:userId" element={<Payments />} />
-        <Route path="/SeatFullInfoPage" element={<SeatFullInfoPage />} />
-        <Route path="/chartdashboard" element={<DashboardChart />} />
-        <Route path='/PaymentDashboard' element={<PaymentDashboard />} />
-      </Routes>
+      <div className='container-fluid'>
+        <Routes>
+          <Route path="/" element={<StudentRegistration />} />
+          <Route path="/studentregistrationpopup" element={<StudentRegistrationPopup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/adminlogin" element={<AdminLogin />} />
+          <Route path='/seatbooking' element={<SeatBooking />} />
+          <Route element={<PrivateRoute />}>
+            <Route path="/admindashboard" element={<AdminDashboard />} />
+            <Route path="/payments/overduepayments" element={<OverduePayments />} />
+            <Route path="/requests-approval" element={<RequestsApproval />} />
+            <Route path='/PaymentDashboard' element={<PaymentDashboard />} />
+          </Route>
+          {/* <Route path="admindashboard" element={<AdminDashboard />} /> */}
+          <Route path="/dashboard/:userId" element={<Layout> <Dashboard />  </Layout>} />
+          <Route path="multiselect" element={<MultiSelect />} />
+          <Route path="/payments/:userId" element={<Payments />} />
+          <Route path="/SeatFullInfoPage" element={<SeatFullInfoPage />} />
+          <Route path="/chartdashboard" element={<DashboardChart />} />
+          <Route path="ChatBox" element={<ChatBox />} />
+          <Route path='MailManager' element={<MailManager />} />
+          <Route path="*" element={<Navigate to="/" />} />
+          <Route path='VideoGenerationBox' element={<VideoGenerationBox />} />
+          <Route path="sdl/librarypolicy" element={<LibraryPolicy />} />
+          <Route path="/shift-seat-request" element={<ShiftSeatChangeRequest />} />
+          <Route path="/my-requests" element={<MyRequests />} />
+        </Routes>
       </div>
     </div>
 

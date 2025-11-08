@@ -10,11 +10,14 @@ import "../assets/css/style.css";
 import StudentStatusModal from './StudentStatusModal';
 import SidebarNav from "../login/SidebarNav";
 import PaymentQR from "./../utils/PaymentQR";
+import AadhaarSection from "./AadhaarSection";
+import { Library } from "lucide-react";
+import LibraryPolicy from "../sdl/LibraryPolicy";
+import ShiftSeatChangeRequestPopup from "./ShiftSeatChangeRequest";
 
 const Dashboard = () => {
 	const [userData, setUserData] = useState(null);
 	const { userId } = useParams();
-
 	const [paymentData, setPaymentData] = useState('');
 	const [loading, setLoading] = useState(true);
 	const [formData, setFormData] = useState({
@@ -26,6 +29,8 @@ const Dashboard = () => {
 	const [adharCard, setadharCard] = useState("");
 	const navigate = useNavigate();
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
+	const [showShiftSeatPopup, setShowShiftSeatPopup] = useState(false);
+
 	useEffect(() => {
 		// Simulating authentication check (e.g., from API or localStorage)
 		const authStatus = localStorage.getItem("userId");
@@ -109,9 +114,6 @@ const Dashboard = () => {
 		}
 	}, [userData]);
 
-
-
-
 	const [isOpen, setIsOpen] = useState(false);
 
 	const toggleScrollDiv = () => {
@@ -124,6 +126,62 @@ const Dashboard = () => {
 		weekday: "long",
 	});
 
+	// 🔹 Handle Deactivation Request
+	const handleDeactivationRequest = async () => {
+		const userId = localStorage.getItem("userId");
+		if (userData?.isRegistered === "Y") {
+			// 💤 Send deactivation request
+			if (!window.confirm("Are you sure you want to request account deactivation?")) return;
+
+			try {
+				await axios.post(
+					`${config.BASE_URL}/requests/${userId}?type=DEACTIVATION&details=Requesting deactivation due to personal reason`
+				);
+				alert("✅ Deactivation request sent successfully!");
+			} catch (error) {
+				console.error("Error sending request:", error);
+				alert("❌ Failed to send deactivation request.");
+			}
+		} else {
+			// ✅ Send reactivation request
+			if (!window.confirm("Do you want to request reactivation of your account?")) return;
+
+			try {
+				await axios.post(
+					`${config.BASE_URL}/requests/${userId}?type=REACTIVATION&details=Requesting account reactivation`
+				);
+				alert("✅ Reactivation request sent successfully!");
+			} catch (error) {
+				console.error("Error sending reactivation request:", error);
+				alert("❌ Failed to send reactivation request.");
+			}
+		}
+	}
+	// 🔹 Handle Shift Change Request
+	const handleShiftChangeRequest = async () => {
+		const userId = localStorage.getItem("userId");
+		if (!userId) {
+			alert("You must be logged in to send requests.");
+			return;
+		}
+
+		const newShift = prompt("Enter the desired new shift (e.g., SHIFT2, SHIFT3):");
+		if (!newShift) return;
+
+		try {
+			const selectedShiftNames = selectedShifts.map(s => s.name).join(",");
+			const details = `Shift change request to [${selectedShiftNames}] -> seat:${selectedSeat}`;
+
+			await axios.post(`${config.BASE_URL}/requests/${userId}?type=SEAT_SHIFT&details=${encodeURIComponent(details)}`);
+
+
+			alert(`✅ Shift change request to ${newShift} submitted successfully!`);
+		} catch (error) {
+			console.error("Error sending request:", error);
+			alert("❌ Failed to send shift change request.");
+		}
+	};
+
 
 	return (
 		<>
@@ -133,6 +191,16 @@ const Dashboard = () => {
 
 			{/*[ Main Content ] start*/}
 			<div className="pcoded-main-container flex">
+				{userData && (
+					<ShiftSeatChangeRequestPopup
+						userId={userData.id}
+						show={showShiftSeatPopup}
+						onClose={() => setShowShiftSeatPopup(false)}
+						onSubmitted={() => {
+							console.log("Shift/Seat change request submitted!");
+						}}
+					/>
+				)}
 
 				<div className="pcoded-wrapper">
 					<div className="pcoded-content">
@@ -262,13 +330,13 @@ const Dashboard = () => {
 														</div>
 													</div>
 												</div>
-												<h4 className="text-center m-b-10">
+												<h5 className="text-center m-b-10">
 													Extra Hour {userData?.extraHour && userData.extraHour.trim() !== "" ? (
 														<>allowed : {userData.extraHour}</>
 													) : (
 														"Not Allowed"
 													)}
-												</h4>
+												</h5>
 
 											</div>
 										</div>
@@ -281,8 +349,8 @@ const Dashboard = () => {
 														</div>
 														<div className="col text-right">
 															<h3>{userData?.purpose}</h3>
-															<h5 className="text-c-info mb-0">Next Due Date <span className="">{paymentData?.dueDate}</span></h5>
-															
+															<h5 className="text-c-info mb-0">Next Due Date <span className="">{userData?.payment?.dueDate}</span></h5>
+
 														</div>
 													</div>
 												</div>
@@ -371,7 +439,7 @@ const Dashboard = () => {
 																				<td>{payment.user.name}</td>
 																				<td>{payment.user.email}</td>
 																				<td>
-																					{payment.amount > 0 ? (
+																					{payment.amount > 0 && !payment.paid ? (
 																						<PaymentQR
 																							userId={payment.id}
 																							userName={payment.user.name}
@@ -399,34 +467,16 @@ const Dashboard = () => {
 										{/*sessions-section end*/}
 										<div className="col-md-6 col-xl-4">
 											<div className="card user-card">
-												<div className="card-header">
+												{/* <div className="card-header">
 													<h5>Profile</h5>
-												</div>
+												</div> */}
 												<div className="user-image text-center">
-													{userData?.adharCard ? (
-														<>
-															<img
-																src={`${config.BASE_ENV}/${userData.adharCard}`}
-																className="img-radius wid-100 m-auto"
-																alt="User Aadhar"
-															/>
-															{/* <button
-																onClick={handleDownloadAdhar}
-																className="mt-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
-															>
-																Download Aadhar
-															</button> */}
-														</>
-													) : (
-														<p className="text-red-500">Aadhar card not available</p>
-													)}
 
-													<h6 className="f-w-600 m-t-25 m-b-10">{userData?.name}</h6>
-													<p>Active | Born ---</p>
-													<hr />
 													<p className="m-t-15">{userData?.adhar}</p>
 													<div className="bg-c-blue counter-block m-t-10 p-20">
-														<div className="row">
+
+														<AadhaarSection user={userData} />
+														{/* <div className="row">
 															<div className="col-4">
 																<i className="fas fa-calendar-check text-white f-20"></i>
 																<h6 style={{ cursor: "pointer" }} className="text-white mt-2 mb-0" onClick={handleDownloadAdhar}>Adhar Card</h6>
@@ -439,7 +489,7 @@ const Dashboard = () => {
 																<i className="fas fa-folder-open text-white f-20"></i>
 																<h6 className="text-white mt-2 mb-0">189</h6>
 															</div>
-														</div>
+														</div> */}
 													</div>
 													<p className="m-t-15">All Student need to adhere to the policies of library.</p>
 													<hr />
@@ -463,7 +513,50 @@ const Dashboard = () => {
 
 			{/*[ Main Content ] end*/}
 
-			<MDBContainer className="py-5" style={{ backgroundImage: "url('https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1212,h=608,fit=crop/AR0bjNz2nXTlpxBy/img20240825103416-m6LJE7rLlxsPG86a.jpg')", backgroundSize: "cover", backgroundPosition: "center", height: "100vh" }}>
+			<MDBContainer className="py-2" style={{ backgroundImage: "url('https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1212,h=608,fit=crop/AR0bjNz2nXTlpxBy/img20240825103416-m6LJE7rLlxsPG86a.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}>
+				{/* User Request Section */}
+				<div className="col-md-12 mt-4">
+					<div className="card">
+						<div className="card-header bg-primary text-white">
+							<h3>User Requests</h3>
+						</div>
+						<div className="card-body">
+							<p className="mb-3">Submit a request for seat/shift change or temporary deactivation of your account.</p>
+							<div className="d-flex flex-wrap gap-3">
+								<button
+									className={`btn ${userData?.isRegistered === "Y"
+											? "btn-warning"
+											: "btn-success"
+										}`}
+									onClick={handleDeactivationRequest}
+								>
+									{userData?.isRegistered === "Y"
+										? "💤 Request Deactivation"
+										: "✅ Request Reactivation"}
+								</button>
+								<button
+									className="btn btn-info"
+									onClick={() => setShowShiftSeatPopup(true)}
+								>
+									🔄 Request Shift/Seat Change
+								</button>
+
+								<div className="mt-3">
+									<button
+										className="btn btn-outline-secondary"
+										onClick={() => navigate("/my-requests")}
+									>
+										📋 View My Requests
+									</button>
+								</div>
+
+							</div>
+						</div>
+					</div>
+					<div className="card-footer text-muted">
+						<LibraryPolicy />
+					</div>
+				</div>
 
 			</MDBContainer>
 		</>

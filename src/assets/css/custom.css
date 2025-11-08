@@ -9,3 +9,20 @@
         display: block;
     }
 }
+/* Animate table rows on hover */
+table tr {
+  transition: background-color 0.3s ease; /* Smooth transition for background color */
+}
+
+table tr:hover {
+  background-color: #f0f0f0; /* Change background color on hover */
+}
+
+/* Animate table cells on hover */
+table td {
+  transition: transform 0.3s ease; /* Smooth transition for transform */
+}
+
+table td:hover {
+  transform: scale(1.05); /* Slightly enlarge cell on hover */
+}

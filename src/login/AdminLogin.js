@@ -106,8 +106,8 @@ const AdminLogin = () => {
 
                 <div className="form-group text-left mt-2">
                   <div className="checkbox checkbox-primary d-inline">
-                    <input type="checkbox" name="checkbox-fill-1" id="checkbox-fill-a1" checked="" />
-                    <label htmlFor="checkbox-fill-a1" className="cr"> Save credentials</label>
+                    {/* <input type="checkbox" name="checkbox-fill-1" id="checkbox-fill-a1" checked="checked" /> */}
+                    {/* <label htmlFor="checkbox-fill-a1" className="cr"> Save credentials</label> */}
                   </div>
                 </div>
                 <button className="btn btn-primary mb-4" onClick={handleSubmit}>Login</button>

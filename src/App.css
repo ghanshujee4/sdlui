@@ -55,7 +55,8 @@
 
 
 .bgimages {
-  background-image: url('https://api.shastradigitallibrary.com/static/media/SDL_pic.e792d0349b10163b8ed2.jpg');
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* background-image: url('https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bGlicmFyeXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60"'); */
 }
 
 .header-blue .navbar .container-fluid {
@@ -397,5 +398,45 @@
 
   100% {
     margin-bottom: 20px;
+  }
+}
+
+.chat-launcher {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  z-index: 1030;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 62px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0 3px 16px #667eea48;
+  cursor: pointer;
+  transition: transform 0.20s, box-shadow 0.3s;
+  animation: fadeIn 0.6s cubic-bezier(.44,.8,.62,.99);
+}
+.chat-launcher:hover {
+  transform: scale(1.10);
+  box-shadow: 0 7px 30px #764ba256;
+}
+
+.chat-launcher-icon {
+  color: #fff;
+  font-size: 32px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .chat-launcher {
+    bottom: 18px;
+    right: 18px;
+    width: 44px;
+    height: 44px;
+  }
+  .chat-launcher-icon {
+    font-size: 24px;
   }
 }
