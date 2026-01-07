@@ -3,7 +3,7 @@ import axiosInstance from "./utils/axiosInstance";
 import config from "./config";
 import { useNavigate } from "react-router-dom";
 import MultiSelect from "./MultiSelect";
-import GrowLoader from "./utils/GrowLoader";
+import GrowLoader from "../utils/GrowLoader";
 import {
   MDBBtn,
   MDBCard,
