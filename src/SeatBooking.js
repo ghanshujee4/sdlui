@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "./utils/axiosInstance";
 import config from "./config";
 import MultiSelect from "./MultiSelect";
 import {
@@ -18,7 +18,7 @@ const SeatBooking = () => {
 
   // Fetch shifts on mount
   useEffect(() => {
-    axios.get(`${config.BASE_URL}/shifts`)
+   axiosInstance.get(`/shifts`)
       .then((response) => setShifts(response.data))
       .catch((error) => console.error("Error fetching shifts:", error));
   }, []);
@@ -34,7 +34,7 @@ const SeatBooking = () => {
       setLoading(true);
       const shiftQuery = selectedShifts.map(s => s.name).join(",");
       try {
-        const response = await axios.get(`${config.BASE_URL}/seats/with-status?shiftNumber=${shiftQuery}`);
+        const response = await axiosInstance.get(`/seats/with-status?shiftNumber=${shiftQuery}`);
         setSeats(Array.isArray(response.data) ? response.data : []);
         setSeatMessage(response.data.length === 0 ? "No seats found for selected shifts." : "");
       } catch (error) {

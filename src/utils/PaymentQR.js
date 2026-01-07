@@ -14,7 +14,7 @@ const PaymentQR = ({ userId, userName, amount }) => {
         onClick={() => setShowModal(true)}
         style={{ cursor: "pointer", display: "inline-block" }}
       >
-      <QRCodeCanvas value={upiLink} size={20} includeMargin={true} />
+      <QRCodeCanvas value={upiLink} size={30} includeMargin={true} />
       {/* <p className="mt-2">
         Scan to pay
       </p> */}

@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import axios from "axios";
 import config from "../config";
 import MultiSelect from "../MultiSelect";
 import { HiArrowNarrowLeft } from "react-icons/hi";
 import Icon from "../utils/IconButton";
-import GrowLoader from "../utils/Growloader";
+import GrowLoader from "../utils/GrowLoader";
 
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
@@ -13,11 +12,10 @@ import { ModuleRegistry } from 'ag-grid-community';
 import {
   AllCommunityModules
 } from 'ag-grid-community';
+import axiosInstance from "../utils/axiosInstance";
 
 // ✅ Register modules globally
 ModuleRegistry.registerModules(AllCommunityModules);
-
-
 
 const SeatFullInfoPage = () => {
   const gridRef = useRef();
@@ -33,7 +31,7 @@ const SeatFullInfoPage = () => {
 
   const fetchSeatData = async () => {
     try {
-      const response = await axios.get(`${config.BASE_URL}/seats/full-info`);
+      const response = await axiosInstance.get(`/seats/full-info`);
       const sortedData = response.data.sort(
         (a, b) => parseInt(a.seatNo) - parseInt(b.seatNo)
       );
@@ -77,6 +75,7 @@ const SeatFullInfoPage = () => {
         filter: true,
         maxWidth: 100,
         cellClass: "text-center font-semibold",
+        // valueGetter: (params) => params.data?.extraHour ?? 0,
       },
       {
         headerName: "Seat No",

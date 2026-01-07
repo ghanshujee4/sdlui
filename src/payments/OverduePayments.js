@@ -3,238 +3,273 @@ import axios from 'axios';
 import './../App.css';
 import config from "../config";
 import { useNavigate } from "react-router-dom";
-import "./Overdue.css";  // Ensure to import the CSS for custom styles
-import { FaPrint, FaFileDownload, FaDashcube, FaWhatsapp } from 'react-icons/fa';
+import "./Overdue.css";
+import { FaPrint, FaFileDownload, FaDashcube, FaWhatsapp, FaFilter } from 'react-icons/fa';
 import WhatsAppLink from '../utils/WhatsAppLink';
 import PhoneCallLink from '../utils/PhoneCallLink';
 import PaymentQR from '../utils/PaymentQR';
+import axiosInstance from '../utils/axiosInstance';
 
 const OverduePayments = () => {
-    // State to store the overdue payments
-    const [overduePayments, setOverduePayments] = useState([]);
-    // State to store any potential error
-    const [error, setError] = useState(null);
-    const navigate = useNavigate();
+  const [overduePayments, setOverduePayments] = useState([]);
+  const [error, setError] = useState(null);
+  const [filterOption, setFilterOption] = useState("ALL");
+  const navigate = useNavigate();
 
-    // Aggregate multiple payments per user:
-    const aggregatePaymentsByUser = (payments) => {
-        const userPaymentsMap = {};
+  // 🔹 Combine multiple overdue payments per user
+  const aggregatePaymentsByUser = (payments) => {
+    const userPaymentsMap = {};
+    payments.forEach((payment) => {
+      const userId = payment.user?.id;
+      if (!userPaymentsMap[userId]) {
+        userPaymentsMap[userId] = { ...payment };
+      } else {
+        userPaymentsMap[userId].amount += payment.amount;
+        const prevDue = new Date(userPaymentsMap[userId].dueDate);
+        const newDue = new Date(payment.dueDate);
+        if (newDue > prevDue) {
+          userPaymentsMap[userId] = {
+            ...userPaymentsMap[userId],
+            ...payment,
+            amount: userPaymentsMap[userId].amount,
+          };
+        }
+      }
+    });
+    return Object.values(userPaymentsMap);
+  };
 
-        payments.forEach((payment) => {
-            const userId = payment.user?.id;
-            if (!userPaymentsMap[userId]) {
-                // Clone to avoid mutating original objects
-                userPaymentsMap[userId] = { ...payment };
-            } else {
-                // Sum the amounts
-                userPaymentsMap[userId].amount += payment.amount;
-
-                // Update to the latest due date if this payment's dueDate is later
-                const prevDue = new Date(userPaymentsMap[userId].dueDate);
-                const newDue = new Date(payment.dueDate);
-                if (newDue > prevDue) {
-                    // Merge latest fields from current payment except amount to keep the sum
-                    userPaymentsMap[userId] = {
-                        ...userPaymentsMap[userId],
-                        ...payment,
-                        amount: userPaymentsMap[userId].amount, // preserve sum amount
-                    };
-                }
-            }
-        });
-
-        return Object.values(userPaymentsMap);
+  // 🔹 Fetch all overdue payments
+  useEffect(() => {
+    const fetchOverduePayments = async () => {
+      try {
+        const response = await axiosInstance.get(`/payments/overdue`);
+        if (response.status === 200) {
+          const filtered = response.data.filter(p => p.user?.isRegistered === 'Y');
+          // ✅ Sort oldest to newest (ascending order)
+          const sorted = filtered.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+          const aggregated = aggregatePaymentsByUser(sorted);
+          setOverduePayments(aggregated);
+        }
+      } catch (err) {
+        console.error('Error fetching overdue payments:', err);
+        setError('An error occurred while fetching overdue payments.');
+      }
     };
+    fetchOverduePayments();
+  }, []);
 
-    useEffect(() => {
-        // Fetch overdue payments when the component mounts
-        const fetchOverduePayments = async () => {
-            try {
-                const response = await axios.get(`${config.BASE_URL}/payments/overdue`);
-                if (response.status === 200) {
-                    const filteredPayments = response.data.filter(payment => payment.user?.isRegistered === 'Y');
-                    // Sort the overdue payments by the due date (latest first)
-                    const sortedPayments = filteredPayments?.sort((a, b) => {
-                        const dueDateA = new Date(a.dueDate);
-                        const dueDateB = new Date(b.dueDate);
-                        return dueDateB - dueDateA; // Descending order
-                    });
-                    // Aggregate payments by user
-                    const aggregatedPayments = aggregatePaymentsByUser(sortedPayments);
-                    setOverduePayments(aggregatedPayments);
-                }
-            } catch (err) {
-                console.error('Error fetching overdue payments:', err);
-                setError('An error occurred while fetching overdue payments.');
-            }
-        };
-
-        fetchOverduePayments();
-    }, []); // Run once on mount
-
-    useEffect(() => {
-        // Check every minute to trigger WhatsApp message at exactly 10:00 AM
-        const checkTimeAndTrigger = () => {
-            const now = new Date();
-            if (now.getHours() === 10 && now.getMinutes() === 0) {
-                sendWhatsAppToAll();
-            }
-        };
-
-        const interval = setInterval(checkTimeAndTrigger, 60000);
-
-        return () => clearInterval(interval);
-    }, [overduePayments]); // Depend on payments so sendWhatsAppToAll has updated data
-
-    // Calculate how many days overdue
-    const calculateOverdueDays = (dueDate) => {
-        const today = new Date();
-        const due = new Date(dueDate);
-        const timeDifference = today - due;
-        return Math.floor(timeDifference / (1000 * 3600 * 24));
+  // 🔹 Auto WhatsApp trigger check at 10 AM
+  useEffect(() => {
+    const checkTimeAndTrigger = () => {
+      const now = new Date();
+      if (now.getHours() === 10 && now.getMinutes() === 0) sendWhatsAppToAll();
     };
+    const interval = setInterval(checkTimeAndTrigger, 60000);
+    return () => clearInterval(interval);
+  }, [overduePayments]);
 
-    // Print table content
-    const handlePrint = () => {
-        const printContent = document.getElementById("overduePaymentsTable").outerHTML;
-        const newWindow = window.open('', '', 'height=800,width=1000');
-        newWindow.document.write('<html><head><title>Overdue Payments Report</title></head><body>');
-        newWindow.document.write(printContent);
-        newWindow.document.write('</body></html>');
-        newWindow.document.close();
-        newWindow.print();
-    };
+  // 🔹 Calculate overdue days
+  const calculateOverdueDays = (dueDate) => {
+    const today = new Date();
+    const due = new Date(dueDate);
+    return Math.floor((today - due) / (1000 * 3600 * 24));
+  };
 
-    // Send WhatsApp message to all users with overdue payments
-    const sendWhatsAppToAll = () => {
-        overduePayments.forEach((payment, index) => {
-            const mobile = '+91' + payment?.user?.mobile;
-            setTimeout(() => {
-                const message = `Hi ${payment?.user?.name} (${payment?.user?.id}), Your total payment pending from ${payment?.dueDate} is ₹${payment?.amount}. Please pay at the earliest.\nThank you.\nSDL`;
-                const whatsappURL = `https://wa.me/${mobile}?text=${encodeURIComponent(message)}`;
-                setTimeout(() => {
-                    window.open(whatsappURL, "_blank");
-                }, index * 2000); // Open tabs spaced by 2 seconds
-            });
-        });
-    };
+  // 🔹 Print table
+  const handlePrint = () => {
+    const printContent = document.getElementById("overduePaymentsTable").outerHTML;
+    const newWindow = window.open('', '', 'height=800,width=1000');
+    newWindow.document.write('<html><head><title>Overdue Payments Report</title></head><body>');
+    newWindow.document.write(printContent);
+    newWindow.document.write('</body></html>');
+    newWindow.document.close();
+    newWindow.print();
+  };
 
-    // Download CSV file of overdue payments
-    const handleDownload = () => {
-        const csvContent = "User ID, Name, Mobile Number, Amount, Due Date\n" +
-            overduePayments.map(payment => 
-                `${payment.user?.id},${payment.user?.name},${payment.user?.mobile},${payment.amount},${payment.dueDate}`
-            ).join("\n");
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "overdue_payments_report.csv";
-        link.click();
-    };
+  // 🔹 WhatsApp to all users
+  const sendWhatsAppToAll = () => {
+    overduePayments.forEach((payment, index) => {
+      const mobile = '+91' + payment?.user?.mobile;
+      const qrLink = `/PaymentQr/${payment?.id}/${payment?.amount}`;
+      setTimeout(() => {
+        const message = `Hi ${payment?.user?.name} (${payment?.user?.id}), your payment pending from ${payment?.dueDate} is ₹${payment?.amount}. Please pay at the earliest ${qrLink}.\n\nThank you.\nShastra Digital Library 📚`;
+        const whatsappURL = `https://wa.me/${mobile}?text=${encodeURIComponent(message)}`;
+        window.open(whatsappURL, "_blank");
+      }, index * 2000);
+    });
+  };
 
-    const navigateToDashboard = () => {
-        navigate('../admindashboard');
-    };
+  // 🔹 Download as CSV
+  const handleDownload = () => {
+    const csv = "User ID, Name, Mobile Number, Amount, Due Date\n" +
+      overduePayments.map(p =>
+        `${p.user?.id},${p.user?.name},${p.user?.mobile},${p.amount},${p.dueDate}`
+      ).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "overdue_payments_report.csv";
+    link.click();
+  };
 
-    return (
-        <div className="container-fluid mt-5">
-            <h2>Overdue Payments</h2>
-            {error && <div style={{ color: 'red' }}>{error}</div>}
+  const navigateToDashboard = () => navigate('../admindashboard');
 
-            {/* Action buttons */}
-            <div className="mb-3">
-                <button className="btn btn-primary me-2" onClick={handleDownload}>
-                    <FaFileDownload className="me-2" /> Download Report
-                </button>
-                <button className="btn btn-success me-2" onClick={handlePrint}>
-                    <FaPrint className="me-2" /> Print Report
-                </button>
-                <button className="btn btn-info me-2" onClick={navigateToDashboard}>
-                    <FaDashcube className="me-2" /> Dashboard
-                </button>
-                <button className="btn btn-primary me-2" onClick={sendWhatsAppToAll}>
-                    <FaWhatsapp className="me-2" /> Send to All
-                </button>
-            </div>
+  // 🔹 Filter by date logic
+  const filterPaymentsByDate = (payments) => {
+    const today = new Date();
+    const filtered = payments.filter(payment => {
+      const dueDate = new Date(payment.dueDate);
+      const diffDays = Math.floor((today - dueDate) / (1000 * 3600 * 24));
 
-            {/* Table */}
-            <div className="table-responsive">
-                <table id="overduePaymentsTable" className="table table-striped table-responsive-sm custom-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Shift/Seat</th>
-                            <th>Mobile</th>
-                            <th>Amount</th>
-                            <th>Due Date</th>
-                            <th>Alert</th>
-                            <th>Call</th>
-                            <th>Pay</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {overduePayments.length === 0 ? (
-                            <tr>
-                                <td colSpan="9" className="text-center">No overdue payments found.</td>
-                            </tr>
-                        ) : (
-                            overduePayments.map((payment) => {
-                                const overdueDays = calculateOverdueDays(payment.dueDate);
-                                const rowClass = overdueDays <= 5 ? 'bg-warning' : 'bg-danger';
+      switch (filterOption) {
+        case "TODAY": return diffDays === 0;
+        case "LAST_7_DAYS": return diffDays > 0 && diffDays <= 7;
+        case "LAST_30_DAYS": return diffDays > 7 && diffDays <= 30;
+        case "OVER_30_DAYS": return diffDays > 30;
+        default: return true;
+      }
+    });
+    return filtered.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+  };
 
-                                return (
-                                    <tr key={payment.user?.id} className={rowClass} style={{ color: '#fff' }}>
-                                        <td>
-                                            <a
-                                                href="#"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    navigate(`/payments/${payment.user?.id}`);
-                                                }}
-                                                style={{ cursor: "pointer", textDecoration: "underline", color: "blue" }}
-                                            >
-                                                {payment.user?.id}
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <a
-                                                href="#"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    navigate(`/dashboard/${payment.user?.id}`);
-                                                }}
-                                                style={{ cursor: "pointer", textDecoration: "underline", color: "blue" }}
-                                            >
-                                                {payment.user?.name}
-                                            </a>
-                                        </td>
-                                        <td>{payment.user?.seat} / {payment.user?.shift}</td>
-                                        <td>{payment.user?.mobile}</td>
-                                        <td>{payment.amount}</td>
-                                        <td>{new Date(payment.dueDate).toLocaleDateString('en-IN')}</td>
-                                        <WhatsAppLink payment={payment} />
-                                        <PhoneCallLink payment={payment} />
-                                        <td>
-                                            {payment.amount > 0 ? (
-                                                <PaymentQR
-                                                    userId={payment.id}
-                                                    userName={payment.user.name}
-                                                    amount={payment.amount}
-                                                />
-                                            ) : (
-                                                "No Payment"
-                                            )}
-                                        </td>
-                                    </tr>
-                                );
-                            })
-                        )}
-                    </tbody>
-                </table>
-            </div>
+  const filteredPayments = filterPaymentsByDate(overduePayments);
+
+  // 🔹 UI
+  return (
+    <div className="container-fluid mt-5">
+      <div className="card shadow-sm border-0 mb-4">
+        <div className="card-body d-flex justify-content-between align-items-center flex-wrap">
+          <h3 className="fw-bold mb-0 text-primary">
+            📅 Overdue Payments
+          </h3>
+          <div className="mt-2 mt-md-0">
+            <button className="btn btn-primary me-2" onClick={handleDownload}>
+              <FaFileDownload className="me-2" /> Download
+            </button>
+            <button className="btn btn-success me-2" onClick={handlePrint}>
+              <FaPrint className="me-2" /> Print
+            </button>
+            <button className="btn btn-info me-2" onClick={navigateToDashboard}>
+              <FaDashcube className="me-2" /> Dashboard
+            </button>
+            <button className="btn btn-success me-2" onClick={sendWhatsAppToAll}>
+              <FaWhatsapp className="me-2" /> Send All
+            </button>
+          </div>
         </div>
-    );
+      </div>
+
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      {/* 🔹 Filter Section */}
+      <div className="card border-0 shadow-sm mb-3">
+        <div className="card-body d-flex align-items-center justify-content-between flex-wrap">
+          <div className="d-flex align-items-center mb-2 mb-md-0">
+            <FaFilter className="text-secondary me-2" />
+            <label className="fw-bold me-2 mb-0">Filter by Due Date:</label>
+            <select
+              className="form-select w-auto"
+              value={filterOption}
+              onChange={(e) => setFilterOption(e.target.value)}
+            >
+              <option value="ALL">All</option>
+              <option value="TODAY">Due Today</option>
+              <option value="LAST_7_DAYS">Last 7 Days</option>
+              <option value="LAST_30_DAYS">Last 30 Days</option>
+              <option value="OVER_30_DAYS">Over 30 Days</option>
+            </select>
+          </div>
+
+          <div className="text-end">
+            <p className="fw-semibold mb-0 text-muted">
+              Showing <span className="text-primary fw-bold">{filteredPayments.length}</span> records
+              {" "}(<span className="text-uppercase">{filterOption.replace(/_/g, " ")}</span>)
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 🔹 Table Section */}
+      <div className="card border-0 shadow-sm">
+        <div className="card-body table-responsive custom-table">
+          <table id="overduePaymentsTable" className="table table-striped align-middle">
+            <thead className="table-dark">
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Seat/Shift</th>
+                <th>Mobile</th>
+                <th>Amount</th>
+                <th>Due Date</th>
+                <th>Alert</th>
+                <th>Call</th>
+                <th>Pay</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPayments.length === 0 ? (
+                <tr>
+                  <td colSpan="9" className="text-center py-4 text-muted">
+                    No overdue payments found for this filter.
+                  </td>
+                </tr>
+              ) : (
+                filteredPayments.map((payment) => {
+                  const overdueDays = calculateOverdueDays(payment.dueDate);
+                  const rowClass = overdueDays <= 5 ? 'bg-warning' : 'bg-danger';
+
+                  return (
+                    <tr key={payment.user?.id} className={rowClass} style={{ color: '#fff' }}>
+                      <td>
+                        <a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigate(`/payments/${payment.user?.id}`);
+                          }}
+                          style={{ cursor: "pointer", color: "white", textDecoration: "underline" }}
+                        >
+                          {payment.user?.id}
+                        </a>
+                      </td>
+                      <td>
+                        <a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigate(`/dashboard/${payment.user?.id}`);
+                          }}
+                          style={{ cursor: "pointer", color: "white", textDecoration: "underline" }}
+                        >
+                          {payment.user?.name}
+                        </a>
+                      </td>
+                      <td>{payment.user?.seat} / {payment.user?.shift}</td>
+                      <td>{payment.user?.mobile}</td>
+                      <td>₹{payment.amount}</td>
+                      <td>{new Date(payment.dueDate).toLocaleDateString('en-IN')}</td>
+                      <WhatsAppLink payment={payment} />
+                      <PhoneCallLink payment={payment} />
+                      <td>
+                        {payment.amount > 0 ? (
+                          <PaymentQR
+                            userId={payment.id}
+                            userName={payment.user.name}
+                            amount={payment.amount}
+                          />
+                        ) : "No Payment"}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default OverduePayments;

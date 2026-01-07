@@ -9,9 +9,8 @@ import {
   Tooltip,
   Brush,
 } from "recharts";
-import axios from "axios";
-import config from "../config";
 import CustomDot from "./CustomDot";
+import adminAxios from "../login/adminAxios";
 
 const PaymentDashboard = () => {
   const [payments, setPayments] = useState([]);
@@ -21,15 +20,16 @@ const PaymentDashboard = () => {
   const [monthlyPaidTotal, setMonthlyPaidTotal] = useState(0);
   const [monthlyUnpaidTotal, setMonthlyUnpaidTotal] = useState(0);
 
+
   // Fetch payments on mount
   useEffect(() => {
     const fetchAllPayments = async () => {
       try {
-        const usersRes = await axios.get(`${config.BASE_URL}/users`);
+        const usersRes = await adminAxios.get(`/users`);
         const users = usersRes.data || [];
         const paymentPromises = users.map((user) =>
-          axios
-            .get(`${config.BASE_URL}/payments/${user.id}`)
+          adminAxios
+            .get(`/payments/${user.id}`)
             .then((res) => (Array.isArray(res.data) ? res.data : []))
             .catch(() => [])
         );

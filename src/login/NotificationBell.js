@@ -1,71 +1,182 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 import { FaBell } from "react-icons/fa";
 import config from "../config";
 
+/* ---------- helpers ---------- */
+const isOlderThanDays = (dateStr, days) => {
+  const created = new Date(dateStr);
+  const now = new Date();
+  const diffDays = (now - created) / (1000 * 60 * 60 * 24);
+  return diffDays >= days;
+};
+
+const normalizeNotifications = (data) => {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.data)) return data.data;
+  return [];
+};
+
 function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
-  const role = localStorage.getItem("role"); // get role from storage
-  
-  useEffect(() => {
-    if (role !== "admin") return;
-    // Create STOMP client
-  const client = new Client({
-  webSocketFactory: () => new SockJS(`${config.BASE_ENV}/ws`),
-  reconnectDelay: 5000,
-  debug: (str) => console.log(str),
-});
+  const [activeTab, setActiveTab] = useState("RECENT"); // RECENT | HISTORY
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [adminRole, setAdminRole] = useState(
+    localStorage.getItem("adminRole")
+  );
 
+  const clientRef = useRef(null);
+
+  /* 🔁 sync role change */
+  useEffect(() => {
+    const handler = () =>
+      setAdminRole(localStorage.getItem("adminRole"));
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+  }, []);
+
+  /* 📥 load notifications */
+  useEffect(() => {
+    if (adminRole !== "ADMIN") return;
+
+    const token = localStorage.getItem("adminToken");
+
+    fetch(`${config.BASE_ENV}/notifications`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Forbidden");
+        return res.json();
+      })
+      .then((data) => {
+        const list = normalizeNotifications(data);
+        setNotifications(list);
+        setUnreadCount(list.filter((n) => !n.read).length);
+      })
+      .catch(() => setNotifications([]));
+  }, [adminRole]);
+
+  /* 🔌 websocket */
+  useEffect(() => {
+    if (adminRole !== "ADMIN") return;
+
+    const client = new Client({
+      webSocketFactory: () =>
+        new SockJS(`${config.BASE_ENV}/ws`),
+      reconnectDelay: 5000,
+    });
 
     client.onConnect = () => {
-      console.log("✅ Connected to WebSocket");
-
-      client.subscribe("/topic/notifications", (message) => {
-        console.log("📩 Incoming message:", message.body);
-        console.log("📩 Incoming header:",message.headers);
-        const newNotification = JSON.parse(message.body);
-        setNotifications((prev) => [newNotification, ...prev]);
+      client.subscribe("/topic/notifications", (msg) => {
+        const n = JSON.parse(msg.body);
+        setNotifications((prev) => [n, ...prev]);
         setUnreadCount((prev) => prev + 1);
       });
     };
 
     client.activate();
+    clientRef.current = client;
 
-    return () => {
-      client.deactivate();
-    };
-  }, [role]);
+    return () => client.deactivate();
+  }, [adminRole]);
 
-  if (role !== "admin") return null;
+  /* 🔔 mark read visually */
+  useEffect(() => {
+    if (open) setUnreadCount(0);
+  }, [open]);
 
+  if (adminRole !== "ADMIN") return null;
+
+  /* ---------- split data ---------- */
+  const recent = notifications.filter(
+    (n) => !isOlderThanDays(n.createdAt, 15)
+  );
+
+  const history = notifications.filter((n) =>
+    isOlderThanDays(n.createdAt, 15)
+  );
+
+  /* ---------- UI ---------- */
   return (
-    <button className="btn bg-primary text-wrap card btn-info pull-left margin-left-10">
-    <div className="relative">
-      <div onClick={() => setOpen(!open)} className="cursor-pointer">
-        <FaBell size={22} />
+    <div className="position-relative d-inline-block ms-2">
+      <button
+        className="btn btn-primary position-relative"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <FaBell size={18} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full">
+          <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
             {unreadCount}
           </span>
         )}
-      </div>
+      </button>
+
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-          <ul className="max-h-72 overflow-y-auto list-unstyled">
-            {notifications.map((n, i) => (
-              <li key={i} className="p-3 border-b border-gray-100 hover:bg-gray-100 transition-colors duration-200 cursor-pointer">
-               <div class="text-gray-800 font-medium color-green"> {n.message} </div>
-               <div class="text-gray-500 text-sm"> {new Date(n.timestamp).toLocaleString()} </div>
+        <div
+          className="position-absolute end-0 mt-2 bg-white border rounded shadow"
+          style={{ width: 360, zIndex: 9999 }}
+        >
+          {/* tabs */}
+          <div className="d-flex border-bottom">
+            <button
+              className={`btn btn-sm flex-fill ${
+                activeTab === "RECENT"
+                  ? "btn-light fw-bold"
+                  : "btn-white"
+              }`}
+              onClick={() => setActiveTab("RECENT")}
+            >
+              Recent
+            </button>
+            <button
+              className={`btn btn-sm flex-fill ${
+                activeTab === "HISTORY"
+                  ? "btn-light fw-bold"
+                  : "btn-white"
+              }`}
+              onClick={() => setActiveTab("HISTORY")}
+            >
+              History (15+ days)
+            </button>
+          </div>
+
+          {/* content */}
+          <ul
+            className="list-unstyled mb-0"
+            style={{ maxHeight: 300, overflowY: "auto" }}
+          >
+            {(activeTab === "RECENT" ? recent : history).length ===
+              0 && (
+              <li className="p-3 text-muted text-center">
+                No notifications
               </li>
-            ))}
+            )}
+
+            {(activeTab === "RECENT" ? recent : history).map(
+              (n, i) => (
+                <li
+                  key={i}
+                  className="p-3 border-bottom"
+                >
+                  <div className="fw-semibold">
+                    {n.message}
+                  </div>
+                  <small className="text-muted">
+                    {new Date(
+                      n.createdAt
+                    ).toLocaleString()}
+                  </small>
+                </li>
+              )
+            )}
           </ul>
         </div>
       )}
     </div>
-    </button>
   );
 }
 

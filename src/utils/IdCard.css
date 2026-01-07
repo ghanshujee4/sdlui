@@ -1,0 +1,193 @@
+.idcard-container {
+  display: flex;
+  justify-content: center;
+  /* margin-top: 20px; */
+}
+
+/* Card wrapper */
+.idcard-card {
+  position: relative;
+     width: 260px;
+    height: 160px;
+  border-radius: 10px;
+  overflow: hidden;
+  color: #0b2447;
+  font-family: "Helvetica", Arial, sans-serif;
+  background: linear-gradient(135deg, #0f5aa6 0%, #0b2447 45%, #1b98f5 100%);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* Wavy overlay using pseudo element */
+.idcard-card::before {
+  content: "";
+  position: absolute;
+  inset: -40px 0 auto 0;
+  background: radial-gradient(circle at 0 0, #ffffff33 0, transparent 60%),
+              radial-gradient(circle at 100% 0, #ffffff22 0, transparent 55%);
+  mix-blend-mode: screen;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+/* Top bar with logo and brand */
+.idcard-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 6px 10px 4px 10px;
+  z-index: 1;
+}
+
+.idcard-logo-circle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 20%, #ffffff, #e3f2fd);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #0b2447;
+}
+
+.idcard-brand-text {
+  margin-left: 6px;
+  color: #ffffff;
+}
+
+.idcard-brand-text h1 {
+  font-size: 13px;
+  letter-spacing: 0.8px;
+  margin: 0;
+  color: #ffffff;
+}
+
+.idcard-brand-text p {
+  font-size: 7px;
+  margin: 0;
+  opacity: 0.85;
+}
+
+/* Body */
+.idcard-body {
+  position: relative;
+  z-index: 1;
+  background: rgb(36 47 200 / 13%);
+  margin: 4px 8px 0 8px;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 8px;
+}
+
+.id-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.id-row span {
+  font-weight: 600;
+  color: #efefef;
+  margin-right: 6px;
+  font-size: 12px;
+}
+
+.id-row strong {
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 12px;
+}
+
+/* Glowing Validity watermark */
+.idcard-validity-watermark {
+    position: absolute;
+    inset: 23% 0 auto 0;
+    text-align: center;
+    letter-spacing: 2px;
+    /* color: #fff; */
+    /* text-transform: uppercase; */
+    font-weight: 700;
+    pointer-events: none;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.8), 0 0 16px rgba(27, 152, 245, 0.7);
+    font-size: 34px;
+
+
+b {
+    font-weight: 400;
+    font-size: large;
+    color: aliceblue;
+}
+}
+/* Footer button */
+.idcard-footer {
+  position: absolute;
+  bottom: 5px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  z-index: 1;
+}
+
+.idcard-footer button {
+  background: #ffffff;
+  color: #0b2447;
+  border: none;
+  font-size: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.idcard-footer button:hover {
+  background: #e3f2fd;
+}
+
+.sdl-id-card {
+  width: 260px;
+  height: 160px;
+  background: linear-gradient(135deg, #1976d2, #2196f3);
+  border-radius: 14px;
+  color: #fff;
+  padding: 14px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  font-family: "Segoe UI", sans-serif;
+}
+
+.sdl-header {
+  font-weight: bold;
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.sdl-body p {
+  font-size: 11px;
+  margin: 2px 0;
+}
+
+.sdl-btn {
+  margin-top: 10px;
+  width: 100%;
+  background: #fff;
+  color: #1976d2;
+  border: none;
+  border-radius: 20px;
+  padding: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.sdl-btn:hover {
+  background: #e3f2fd;
+}
+
+.sdl-btn:active {
+    font-size: large;
+    z-index: 9999999;
+    color: #0ce47b;
+}

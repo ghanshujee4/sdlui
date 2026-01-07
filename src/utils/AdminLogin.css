@@ -1,0 +1,45 @@
+.login-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  font-size: 16px;
+  background: #1e88e5;
+  color: white;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+}
+
+.arrow {
+  transition: transform 0.4s ease;
+}
+
+/* Login animation → slide right */
+.slide-right {
+  animation: slideRight 0.6s ease-in-out infinite alternate;
+}
+
+/* Logout animation → slide left */
+.slide-left {
+  animation: slideLeft 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes slideRight {
+  from {
+    transform: translateX(-6px);
+  }
+  to {
+    transform: translateX(6px);
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    transform: translateX(6px);
+  }
+  to {
+    transform: translateX(-6px);
+  }
+}

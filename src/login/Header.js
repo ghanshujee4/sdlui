@@ -8,11 +8,11 @@ import ChatBox from "../chat/ChatBox";
 const Header = () => {
   const [showChatBox, setShowChatBox] = useState(false);
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token") || !!localStorage.getItem("adminToken"));
 
   useEffect(() => {
     const handleStorageChange = () => {
-      setIsLoggedIn(!!localStorage.getItem("token"));
+      setIsLoggedIn(!!localStorage.getItem("token") || !!localStorage.getItem("adminToken"));
     };
 
     window.addEventListener("storage", handleStorageChange);
@@ -24,6 +24,8 @@ const Header = () => {
     localStorage.removeItem("token"); // Ensure token is removed
     localStorage.removeItem("userId"); // Remove any related user data
     localStorage.removeItem("role"); // Remove Role related user data
+    localStorage.removeItem("adminToken"); // Ensure admin token is removed
+    localStorage.removeItem("adminRole"); // Remove Role related user data
     setIsLoggedIn(false); // Ensure state updates immediately
     window.dispatchEvent(new Event("storage")); // Notify all tabs
   };
@@ -53,8 +55,9 @@ const Header = () => {
         <button
           className="btn bg-success bg-success pull-left margin-left-10"
           onClick={() => {
-            const role = localStorage.getItem("role"); // Get role from local storage
-            if (role === "admin") {
+            const adminToken = localStorage.getItem("adminToken");
+            const adminRole = localStorage.getItem("adminRole"); // Get role from local storage
+            if (adminToken && adminRole === "ADMIN") {
               navigate("/admindashboard"); // Redirect to admin dashboard
             } else {
               navigate("/adminlogin"); // Redirect to login if not admin
@@ -66,8 +69,8 @@ const Header = () => {
         </button>
         
               <NotificationBell />
-              <ChatLauncher onClick={() => setShowChatBox((v) => !v)} />
-              {showChatBox && <ChatBox />}
+              {/* <ChatLauncher onClick={() => setShowChatBox((v) => !v)} /> */}
+              {/* {showChatBox && <ChatBox />} */}
       </div>
     </header>
   );

@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import config from "../config"; // Replace with your actual config file
 import './Login.css';
+import axiosInstance from "../utils/axiosInstance";
 
 import {
   MDBContainer,
@@ -31,10 +32,10 @@ const Login = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    axios.post(`${config.BASE_URL}/users/login`, formData, {
+   axiosInstance.post(`/users/login`, formData, {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        // Authorization: `Bearer ${localStorage.getItem("token")}`,
       }
     })
     .then((response) => {

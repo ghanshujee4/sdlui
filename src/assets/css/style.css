@@ -306,7 +306,7 @@ p.text-muted {
 
 .card .card-block,
   .card .card-body {
-    padding: 20px 25px;
+    padding: 15px 15px;
 }
 
 .card .card-block-big {
@@ -1139,7 +1139,8 @@ pre[class*=language-]:before {
 }
 
 .bg-danger {
-    background: linear-gradient(45deg, #e52d27, #b31217) !important;
+    /* background: linear-gradient(45deg, #e52d27, #b31217) !important; */
+    background: linear-gradient(45deg, #0d6efd, #e52d27) !important;
 }
 
 .text-danger {
@@ -2918,7 +2919,7 @@ pre[class*=language-]:before {
     float: unset;
     right: 0;
     top: 0;
-    margin-left: 264px;
+    /* margin-left: 264px; */
     min-height: 100vh;
     transition: all 0.3s ease-in-out;
 }
@@ -7260,7 +7261,7 @@ table.dataTable tbody > tr.selected td.select-checkbox:after, table.dataTable tb
 
 .btn-sm {
     padding: 3px 12px;
-    border-radius: 0.15rem;
+    /* border-radius: 0.15rem; */
 }
 
 .btn-group .btn,
@@ -8415,9 +8416,9 @@ table.dataTable tbody > tr.selected td.select-checkbox:after, table.dataTable tb
     display: block;
 }
 
-.modal-content {
+/* .modal-content {
     border-radius: 2px;
-}
+} */
 
 .modal-content .modal-header {
     border-bottom: 1px solid #e2e5e8;
@@ -8594,4 +8595,9 @@ table.dataTable tbody > tr.selected td.select-checkbox:after, table.dataTable tb
 		-webkit-box-shadow: 0 0 0 0 rgba(4, 169, 245, 0);
 		box-shadow: 0 0 0 0 rgba(4, 169, 245, 0)
 	}
+}
+
+
+ul.max-h-72.overflow-y-auto.list-unstyled {
+    color: gray;
 }

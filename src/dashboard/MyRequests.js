@@ -3,6 +3,7 @@ import axios from "axios";
 import config from "../config";
 import { MDBCard, MDBCardBody, MDBCardHeader, MDBBadge, MDBBtn } from "mdb-react-ui-kit";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../utils/axiosInstance";
 
 const MyRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -20,7 +21,7 @@ const MyRequests = () => {
       return;
     }
     try {
-      const res = await axios.get(`${config.BASE_URL}/requests/${userId}`);
+      const res = await axiosInstance.get(`/requests/${userId}`);
       setRequests(res.data);
       setMessage("");
     } catch (err) {
@@ -48,16 +49,28 @@ const MyRequests = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  // const formatDate = (dateString) => {
+  //   if (!dateString) return "N/A";
+  //   return new Date(dateString).toLocaleString("en-GB", {
+  //     day: "2-digit",
+  //     month: "short",
+  //     year: "numeric",
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //   });
+  // };
+
+  const formatDateDDMMYYYY = (dateStr) => {
+  if (!dateStr) return "--";
+
+  const d = new Date(dateStr);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+
+  return `${day}-${month}-${year}`;
+};
+
 
   if (loading) {
     return (
@@ -72,7 +85,7 @@ const MyRequests = () => {
       <MDBCard className="shadow-2">
         <MDBCardHeader className="bg-primary text-white d-flex justify-content-between align-items-center">
           <h4 className="mb-0">📋 My Requests</h4>
-          <MDBBtn color="light" size="sm" onClick={() => navigate("/dashboard")}>
+          <MDBBtn color="light" size="sm" onClick={() => navigate(`/dashboard/${userId}`)}>
             ← Back to Dashboard
           </MDBBtn>
         </MDBCardHeader>
@@ -104,7 +117,7 @@ const MyRequests = () => {
                         {req.type === "SEAT_SHIFT" ? "Seat/Shift Change" : "Deactivation"}
                       </td>
                       <td>{req.details}</td>
-                      <td>{formatDate(req.createdAt)}</td>
+                      <td>{formatDateDDMMYYYY(req.createdAt)}</td>
                       <td>
                         <MDBBadge color={getStatusColor(req.status)} pill className="px-3 py-2">
                           {req.status}

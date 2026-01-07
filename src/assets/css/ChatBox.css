@@ -64,6 +64,8 @@
 
 
 .chat-wrapper {
+  position: fixed;
+  z-index: 999;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -224,7 +226,7 @@
 }
 
 .message-content {
-  background: white;
+  /* background: white; */
   padding: 12px 16px;
   border-radius: 12px;
   word-wrap: break-word;
@@ -284,6 +286,7 @@
   padding: 16px;
   background: white;
   border-top: 1px solid #e0e0e0;
+  
 }
 
 .input-wrapper {
@@ -359,5 +362,11 @@
   .chat-header h1 {
     font-size: 20px;
   }
+  .chat-wrapper {
+    bottom: 0;
+    z-index: 888;
+    min-width: 100%;
+    max-width: 100%;
+    position: fixed;
 }
-
+}

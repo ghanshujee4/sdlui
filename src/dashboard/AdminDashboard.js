@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import adminAxios from "../login/adminAxios";
 import config from "../config";
 import MultiSelect from "./../MultiSelect";
-import GrowLoader from "../utils/Growloader";
+import GrowLoader from "../utils/GrowLoader";
 import { Card, Modal, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { handleStatus } from './Dashboard';
+// import { handleStatus } from './Dashboard';
 import "../assets/css/style.css";
 import "./../assets/glowonhover.css";
+import formatDateDDMMYYYY from "../utils/formatDateDDMMYYYY";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -28,34 +29,49 @@ const AdminDashboard = () => {
   // Modal state for delete confirmation
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userIdToDelete, setUserIdToDelete] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+
+  // 🔐 AUTH GUARD
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    const role = localStorage.getItem("adminRole");
+
+    if (!token || role !== "ADMIN") {
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminRole");
+      navigate("/adminlogin");
+      return;
+    }
+
+    setAuthReady(true);
+  }, [navigate]);
+
+
+  useEffect(() => {
+    if (!authReady) return;
+    fetchUsers();
+  }, [authReady]);
+
 
   // Fetch users on mount if admin
-  useEffect(() => {
-    if (localStorage.getItem("role") === "admin") {
-      fetchUsers();
-    }
-  }, []);
+  // useEffect(() => {
+  //     fetchUsers();
+  // }, []);
 
   // Fetch shifts on mount
   useEffect(() => {
-    axios.get(`${config.BASE_URL}/shifts`)
+    // if (!localStorage.getItem("adminToken")) return;
+if (!authReady) return;
+    adminAxios.get(`/shifts`)
       .then((res) => setShifts(res.data))
       .catch(console.error);
-  }, []);
-
-  // Redirect unauthorized users
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-    if (!token || role !== "admin") {
-      navigate("/");
-    }
-  }, [navigate]);
+  }, [authReady]);
 
   // Fetch payment due dates for users
   useEffect(() => {
     users.forEach(user => {
-      axios.get(`${config.BASE_URL}/payments/${user.id}`)
+      if (!authReady) return;
+      adminAxios.get(`/payments/${user.id}`)
         .then(res => {
           setPaymentDueDates(prev => ({ ...prev, [user.id]: res.data.duedate }));
         })
@@ -66,7 +82,9 @@ const AdminDashboard = () => {
   // Fetch seats based on selected shift
   const getSeatResponse = () => {
     if (!selectedShift) return;
-    axios.get(`${config.BASE_URL}/seats/with-status?shiftNumber=${selectedShift}`)
+    // if (!localStorage.getItem("adminToken")) return;
+    if (!authReady) return;
+    adminAxios.get(`/seats/with-status?shiftNumber=${selectedShift}`)
       .then(res => setSeats(res.data))
       .catch(console.error);
   };
@@ -74,7 +92,9 @@ const AdminDashboard = () => {
   // Fetch all users
   const fetchUsers = () => {
     setLoading(true);
-    axios.get(`${config.BASE_URL}/users`)
+    // if (!localStorage.getItem("adminToken")) return;
+    if (!authReady) return;
+    adminAxios.get(`/users`)
       .then(res => {
         setUsers(res.data);
         setCount(res.data.length);
@@ -122,7 +142,9 @@ const AdminDashboard = () => {
       updatedUser.shift = updatedUser.shift.join(",");
     }
     setLoading(true);
-    axios.put(`${config.BASE_URL}/users/update/${editingUser}`, updatedUser)
+    // if (!localStorage.getItem("adminToken")) return;
+    if (!authReady) return;
+    adminAxios.put(`/users/update/${editingUser}`, updatedUser)
       .then(res => {
         setUsers(users.map(u => u.id === editingUser ? res.data : u));
         setEditingUser(null);
@@ -143,7 +165,9 @@ const AdminDashboard = () => {
 
   const handleDeleteConfirmed = () => {
     if (!userIdToDelete) return;
-    axios.delete(`${config.BASE_URL}/users/${userIdToDelete}`)
+    // if (!localStorage.getItem("adminToken")) return;
+    if (!authReady) return;
+    adminAxios.delete(`/users/${userIdToDelete}`)
       .then(() => {
         setUsers(users.filter(u => u.id !== userIdToDelete));
         setMessage("User deleted successfully.");
@@ -162,7 +186,9 @@ const AdminDashboard = () => {
   // Toggle user active/inactive status
   const handleStatus = id => {
     setLoading(true);
-    axios.post(`${config.BASE_URL}/users/${id}`)
+    // if (!localStorage.getItem("adminToken")) return;
+    if (!authReady) return;
+    adminAxios.post(`/users/${id}`)
       .then(() => {
         setMessage(`User ${id} details updated successfully!`);
         fetchUsers();
@@ -195,7 +221,7 @@ const AdminDashboard = () => {
       return (parseInt(a.seat || 0, 10) - parseInt(b.seat || 0, 10));
     })
     .filter(u =>
-      (`${u.name} ${u.email} ${u.id} ${u.seat} ${u.shift}`).toLowerCase().includes(search.toLowerCase())
+      (`${u.name} ${u.email} ${u.id} ${u.seat} ${u.shift} ${u.mobile}`).toLowerCase().includes(search.toLowerCase())
     )
     .filter(u =>
       filterMode === "all" ||
@@ -207,14 +233,14 @@ const AdminDashboard = () => {
   const unregisteredUsers = users.filter(u => u.isRegistered !== 'Y');
 
   // Loading screen
-  if (loading) {
-    return <div className="text-center mt-5"><GrowLoader /></div>;
-  }
+  // if (loading) {
+  //   return <div className="text-center mt-5"><GrowLoader /></div>;
+  // }
 
   return (
     <>
-      <div>
-        <h1 className="text-center mb-4">Admin Dashboard</h1>
+      <div className="container-fluid mb-5">
+        <h3 className="text-center mb-4">Admin Dashboard</h3>
         {message && <div className="alert alert-info">{message}</div>}
 
         <div className="col-xs-2 float-left mb-3">
@@ -274,7 +300,7 @@ const AdminDashboard = () => {
 
 
         <div className="table-responsive mt-3">
-          <table className="table table-striped table-responsive-sm">
+          <table className="table table-striped">
             <thead>
               <tr>
                 <th style={{ cursor: "pointer" }}>User ID</th>
@@ -319,8 +345,8 @@ const AdminDashboard = () => {
                     </td>
                     <td>
                       {editingUser === user.id ? (
-                        <input type="date" name="admissionDate" value={editFormData.admissionDate} onChange={handleEditChange} className="form-control" />
-                      ) : user.admissionDate}
+                        <input type="date" name="admissionDate" value={formatDateDDMMYYYY(editFormData.admissionDate)} onChange={handleEditChange} className="form-control" />
+                      ) : formatDateDDMMYYYY(user.admissionDate)}
                     </td>
                     <td>
                       {editingUser === user.id ? (
@@ -360,7 +386,7 @@ const AdminDashboard = () => {
                       ) : user.seat}
                     </td>
                     <td>
-                      {editingUser === user.id ? (
+                      {editingUser === user?.id ? (
                         <input type="number" name="extraHour" value={editFormData.extraHour} onChange={handleEditChange} className="form-control" />
                       ) : user.extraHour}
                     </td>
@@ -373,8 +399,8 @@ const AdminDashboard = () => {
                       ) : (
                         <>
                           <button className="btn btn-primary btn-sm me-2" onClick={() => startEditing(user)}>Edit</button>
-                          <button className="btn btn-danger btn-sm" onClick={() => confirmDeleteUser(user.id)}>Delete</button>
-                          <button className="btn btn-warning btn-sm ms-2" onClick={() => handleStatus(user.id)}>
+                          <button className="btn btn-danger btn-sm" onClick={() => confirmDeleteUser(user?.id)}>Delete</button>
+                          <button className="btn btn-warning btn-sm ms-2" onClick={() => handleStatus(user?.id)}>
                             {user.isRegistered === 'Y' ? 'Active' : 'Inactive'}
                           </button>
                         </>

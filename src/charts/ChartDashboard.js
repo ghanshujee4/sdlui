@@ -1,10 +1,10 @@
+import { Import } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
     BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
     ResponsiveContainer, LineChart, Line, Brush
 } from "recharts";
-import axios from "axios";
-import config from "../config";
+import axiosInstance from "../utils/axiosInstance";
 
 const ChartDashboard = ({ selectedDate }) => {
     const [users, setUsers] = useState([]);
@@ -18,7 +18,7 @@ const ChartDashboard = ({ selectedDate }) => {
     const [dailyData, setDailyData] = useState([]);
     const [monthlyTotal, setMonthlyTotal] = useState(0);
     useEffect(() => {
-        axios.get(`${config.BASE_URL}/users`)
+       axiosInstance.get(`/users`)
             .then(res => {
                 const usersData = res.data;
                 setUsers(usersData);

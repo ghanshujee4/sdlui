@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import config from "../config";
-import GrowLoader from "../utils/Growloader";
+import GrowLoader from "../utils/GrowLoader";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+import adminAxios from "../login/adminAxios";
 
 const RequestsApproval = () => {
   const [requests, setRequests] = useState([]);
@@ -12,17 +11,17 @@ const RequestsApproval = () => {
   const navigate = useNavigate();
 
   // 🔹 Verify admin login
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-    if (!token || role !== "admin") navigate("/");
-  }, [navigate]);
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   const role = localStorage.getItem("role");
+  //   if (!token || role !== "admin") navigate("/");
+  // }, [navigate]);
 
   // 🔹 Fetch all requests
   const fetchRequests = () => {
     setLoading(true);
-    axios
-      .get(`${config.BASE_URL}/requests`)
+    adminAxios
+      .get(`/requests`)
       .then((res) => {
         setRequests(res.data);
         setLoading(false);
@@ -41,8 +40,8 @@ const RequestsApproval = () => {
   // 🔹 Approve or Reject Request
   const handleAction = (id, action) => {
     setLoading(true);
-    axios
-      .put(`${config.BASE_URL}/requests/${action}/${id}`)
+    adminAxios
+      .put(`/requests/${action}/${id}`)
       .then(() => {
         toast.success(`Request ${action === "approve" ? "approved" : "rejected"} successfully`);
         fetchRequests();

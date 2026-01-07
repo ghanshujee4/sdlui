@@ -2,6 +2,7 @@ import React from "react";
 import axios from "axios";
 import { Card, Button } from "react-bootstrap"; // or MDBootstrap if you prefer
 import config from "../config";
+import axiosInstance from "../utils/axiosInstance";
 
 const AadhaarSection = ({ user }) => {
   const handleDownloadAdhar = async () => {
@@ -15,7 +16,7 @@ const AadhaarSection = ({ user }) => {
       const filePath = user.adharCard.replace(/^\/+/, "");
       const url = `${config.BASE_ENV}/${filePath}`;
 
-      const response = await axios.get(url, { responseType: "blob" });
+      const response = await axiosInstance.get(url, { responseType: "blob" });
 
       // Create download link
       const blob = new Blob([response.data], { type: "application/pdf" });

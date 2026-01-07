@@ -2,12 +2,15 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import config from "../config";
-import GrowLoader from "../utils/Growloader";
+import GrowLoader from "../utils/GrowLoader";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../App.css";
 import "../assets/css/style.css";
-import { FaEdit, FaTrash, FaRegCheckCircle, FaPlusCircle, FaClock, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrash, FaRegCheckCircle, FaPlusCircle, FaClock, FaSave, FaWhatsapp } from "react-icons/fa";
+import WhatsAppLink from "../utils/WhatsAppLink";
+import formatDateDDMMYYYY from "../utils/formatDateDDMMYYYY";
+import adminAxios from "../utils/axiosInstance";
 const Payments = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
@@ -19,19 +22,21 @@ const Payments = () => {
   const [userName, setUserName] = useState("");
   const [editableRow, setEditableRow] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [customMsg, setCustomMsg] = useState("");
+  
 
   // ✅ Verify admin auth
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-    if (!token || role !== "admin") navigate("/");
-  }, [navigate]);
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   const role = localStorage.getItem("role");
+  //   if (!token || role !== "admin") navigate("/");
+  // }, [navigate]);
 
   // ✅ Fetch all payments for user
   const fetchPayments = () => {
     setLoading(true);
-    axios
-      .get(`${config.BASE_URL}/payments/${userId}`, { cache: "no-store" })
+    adminAxios
+      .get(`/payments/${userId}`, { cache: "no-store" })
       .then((response) => {
         const data = response?.data;
         if (Array.isArray(data)) {
@@ -70,8 +75,8 @@ const Payments = () => {
     };
 
     setLoading(true);
-    axios
-      .post(`${config.BASE_URL}/payments/${userId}/add`, newPaymentData)
+    adminAxios
+      .post(`/payments/${userId}/add`, newPaymentData)
       .then(() => {
         toast.success("New payment record added successfully!");
         fetchPayments(); // reload payments list from backend
@@ -91,8 +96,8 @@ const Payments = () => {
     }
     setLoading(true);
     const comments = paymentComments[paymentId] || "";
-    axios
-      .post(`${config.BASE_URL}/payments/mark-as-paid/${paymentId}`, {
+    adminAxios
+      .post(`/payments/mark-as-paid/${paymentId}`, {
         amount: parseFloat(amount),
         comments,
       })
@@ -109,8 +114,8 @@ const Payments = () => {
   // ✅ Update existing payment
   const updatePayment = (paymentId, updatedPayment) => {
     setLoading(true);
-    axios
-      .put(`${config.BASE_URL}/payments/${paymentId}`, {
+    adminAxios
+      .put(`/payments/${paymentId}`, {
         ...updatedPayment,
         paid: !!updatedPayment.paid,
       })
@@ -126,8 +131,8 @@ const Payments = () => {
   // ✅ Delete payment
   const deletePayment = (paymentId) => {
     setLoading(true);
-    axios
-      .delete(`${config.BASE_URL}/payments/${paymentId}`)
+    adminAxios
+      .delete(`/payments/${paymentId}`)
       .then(() => {
         toast.success(`Payment ID ${paymentId} deleted.`);
         fetchPayments();
@@ -156,19 +161,15 @@ const Payments = () => {
 
       {/* ✅ Add Payment Button (no UI class change) */}
       <div style={{ textAlign: "right", marginBottom: "10px" }}>
-        {/* <button
-          onClick={addNewRow}
-          className="btn btn-primary"
-          style={{
-            backgroundColor: "#2563eb",
-            color: "white",
-            padding: "8px 12px",
-            borderRadius: "5px",
-          }}
+        {/* {payments.length > 0 && (
+        <button
+          className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-700 mr-2 btn-primary shadow hover:scale-105 transition flex items-center"
+          onClick={() => setCustomMsg(`Hi ${payment.user.name}, your account has been deactivated due to non-payment. Please clear dues to reactivate.\nThank you.\nSDL`)}
         >
-          ➕ Add Payment
+          <WhatsAppLink payment={payments} customMessage={customMsg} />
+          Deactivate?
         </button> */}
-
+        {/* )} */}
         <button
           className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-700 mr-2 btn-primary shadow hover:scale-105 transition"
           onClick={addNewRow}
@@ -287,8 +288,8 @@ const Payments = () => {
                       <td className="border p-2">
                         {payment.monthPaid
                           ? new Date(payment.monthPaid).toLocaleString("en-US", {
-                              month: "long",
-                            })
+                            month: "long",
+                          })
                           : "N/A"}
                       </td>
                       <td className="border p-2">

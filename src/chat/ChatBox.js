@@ -30,7 +30,7 @@ export default function ChatBox() {
 
     try {
       // Call Spring Boot backend
-      const res = await fetch(`${config.BASE_URL}/chat`, {
+      const res = await fetch(`/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMessage }),

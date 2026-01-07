@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[591],{2591:(e,t,l)=>{l.r(t),l.d(t,{default:()=>a});var o=l(1283),s=l(579);const a=()=>{const e=localStorage.getItem("token"),t=localStorage.getItem("role");return e?"ADMIN"!==t?(0,s.jsx)(o.C5,{to:"/",replace:!0}):(0,s.jsx)(o.sv,{}):(0,s.jsx)(o.C5,{to:"/login",replace:!0})}}}]);
+//# sourceMappingURL=591.4f19cbe6.chunk.js.map

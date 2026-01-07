@@ -22,4 +22,15 @@ const DateFormatter = ({ value, isEditing, onChange, name }) => {
   );
 };
 
+export const formatDate = (dateStr) => {
+  if (!dateStr) return "--";
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(dateStr));
+};
+
+
 export default DateFormatter;

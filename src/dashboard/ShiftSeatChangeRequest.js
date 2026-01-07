@@ -1,6 +1,6 @@
 // src/requests/ShiftSeatChangeRequestPopup.jsx
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import config from "../config";
 import {
   MDBBtn,
@@ -27,8 +27,8 @@ const ShiftSeatChangeRequestPopup = ({ userId, show, onClose, onSubmitted }) => 
   // Fetch available shifts
   useEffect(() => {
     if (!show) return;
-    axios
-      .get(`${config.BASE_URL}/shifts`)
+    axiosInstance
+      .get(`/shifts`)
       .then((res) => setShifts(res.data))
       .catch(() => setShifts([]));
   }, [show]);
@@ -37,8 +37,8 @@ const ShiftSeatChangeRequestPopup = ({ userId, show, onClose, onSubmitted }) => 
   const fetchSeats = async (shiftNumber) => {
     if (!shiftNumber) return;
     try {
-      const response = await axios.get(
-        `${config.BASE_URL}/seats/with-status?shiftNumber=${shiftNumber}`
+      const response = await axiosInstance.get(
+        `/seats/with-status?shiftNumber=${shiftNumber}`
       );
       setSeats(response.data || []);
     } catch (err) {
@@ -73,12 +73,12 @@ const ShiftSeatChangeRequestPopup = ({ userId, show, onClose, onSubmitted }) => 
 
     setLoading(true);
     try {
-      await axios.post(
-        `${config.BASE_URL}/requests/${userId}?type=SEAT_SHIFT&details=${encodeURIComponent(
+      await axiosInstance.post(
+        `/requests/${userId}?type=SEAT_SHIFT&details=${encodeURIComponent(
           details
         )}`
       );
-      alert("✅ Shift/Seat change request submitted for admin approval.");
+      alert("✅ Shift/Seat change request submitted for admin approval. Pay Rs: 50 to get it approved");
       setSelectedShift("");
       setSelectedSeat("");
       setSelectedOptions([]);
