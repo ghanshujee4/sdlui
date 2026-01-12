@@ -9,6 +9,7 @@ import WhatsAppLink from '../utils/WhatsAppLink';
 import PhoneCallLink from '../utils/PhoneCallLink';
 import PaymentQR from '../utils/PaymentQR';
 import axiosInstance from '../utils/axiosInstance';
+import formatDateDDMMYYYY from '../utils/formatDateDDMMYYYY';
 
 const OverduePayments = () => {
   const [overduePayments, setOverduePayments] = useState([]);
@@ -102,9 +103,9 @@ const OverduePayments = () => {
 
   // 🔹 Download as CSV
   const handleDownload = () => {
-    const csv = "User ID, Name, Mobile Number, Amount, Due Date\n" +
+    const csv = "User ID, Name, Mobile Number, Amount, Due Date, Seat, Shift\n" +
       overduePayments.map(p =>
-        `${p.user?.id},${p.user?.name},${p.user?.mobile},${p.amount},${p.dueDate}`
+        `${p.user?.id},${p.user?.name},${p.user?.mobile},${p.amount},${formatDateDDMMYYYY(p.dueDate)} ,${p?.user?.seat},,${p?.user?.shift},`
       ).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
