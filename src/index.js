@@ -7,13 +7,13 @@ import reportWebVitals from './reportWebVitals';
 // CSS Imports (Order matters)
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'mdb-react-ui-kit/dist/css/mdb.min.css';
+import 'font-awesome/css/font-awesome.min.css';
 import './index.css';
 
+// Bootstrap JS (includes Popper automatically)
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
 import ThemeProvider from 'react-bootstrap/ThemeProvider';
-import 'bootstrap/dist/css/bootstrap.min.css'; // Already likely present
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // Includes Popper automatically
-import 'font-awesome/css/font-awesome.min.css';
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 // import '../assets/css/style.css';
 

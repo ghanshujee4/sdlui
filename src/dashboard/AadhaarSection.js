@@ -52,6 +52,8 @@ const AadhaarSection = ({ user }) => {
                 alt="Aadhaar Card"
                 width="100%"
                 style={{ borderRadius: "10px" }}
+                loading="lazy"
+                decoding="async"
               />
             )}
           </div>

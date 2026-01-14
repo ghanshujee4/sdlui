@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../utils/authUtils";
 import NotificationBell from "./NotificationBell";
-import ChatLauncher from "../chat/ChatLauncher";
-import ChatBox from "../chat/ChatBox";
+// import ChatLauncher from "../chat/ChatLauncher";
+// import ChatBox from "../chat/ChatBox";
 
-const Header = () => {
-  const [showChatBox, setShowChatBox] = useState(false);
+const Header = React.memo(() => {
+  // const [showChatBox, setShowChatBox] = useState(false);
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token") || !!localStorage.getItem("adminToken"));
+  const [isLoggedIn, setIsLoggedIn] = useState(() => 
+    !!localStorage.getItem("token") || !!localStorage.getItem("adminToken")
+  );
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -19,7 +21,7 @@ const Header = () => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout(navigate);
     localStorage.removeItem("token"); // Ensure token is removed
     localStorage.removeItem("userId"); // Remove any related user data
@@ -28,12 +30,25 @@ const Header = () => {
     localStorage.removeItem("adminRole"); // Remove Role related user data
     setIsLoggedIn(false); // Ensure state updates immediately
     window.dispatchEvent(new Event("storage")); // Notify all tabs
-  };
-  const onLoginClick = () => {
-    
-    navigate("/login");
+  }, [navigate]);
 
-  }
+  const onLoginClick = useCallback(() => {
+    navigate("/login");
+  }, [navigate]);
+
+  const handleRegisterClick = useCallback(() => {
+    navigate("/");
+  }, [navigate]);
+
+  const handleAdminClick = useCallback(() => {
+    const adminToken = localStorage.getItem("adminToken");
+    const adminRole = localStorage.getItem("adminRole"); // Get role from local storage
+    if (adminToken && adminRole === "ADMIN") {
+      navigate("/admindashboard"); // Redirect to admin dashboard
+    } else {
+      navigate("/adminlogin"); // Redirect to login if not admin
+    }
+  }, [navigate]);
   
 
   return (
@@ -49,31 +64,24 @@ const Header = () => {
           </button>
         )}
         
-        <button className="btn card btn-light bg-light pull-left margin-left-10" href="#" onClick={() => navigate("/")}>
+        <button className="btn card btn-light bg-light pull-left margin-left-10" onClick={handleRegisterClick}>
           Register 
         </button>
         <button
           className="btn bg-success bg-success pull-left margin-left-10"
-          onClick={() => {
-            const adminToken = localStorage.getItem("adminToken");
-            const adminRole = localStorage.getItem("adminRole"); // Get role from local storage
-            if (adminToken && adminRole === "ADMIN") {
-              navigate("/admindashboard"); // Redirect to admin dashboard
-            } else {
-              navigate("/adminlogin"); // Redirect to login if not admin
-            }
-          }}
+          onClick={handleAdminClick}
         >
           Admin 
-
         </button>
         
-              <NotificationBell />
-              {/* <ChatLauncher onClick={() => setShowChatBox((v) => !v)} /> */}
-              {/* {showChatBox && <ChatBox />} */}
+        <NotificationBell />
+        {/* <ChatLauncher onClick={() => setShowChatBox((v) => !v)} /> */}
+        {/* {showChatBox && <ChatBox />} */}
       </div>
     </header>
   );
-};
+});
+
+Header.displayName = 'Header';
 
 export default Header;

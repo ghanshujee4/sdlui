@@ -14,8 +14,8 @@ const SidebarNav = () => {
       <div className="navbar-warpper">
         <div className="navbar-wrapper">
           <div className="navbar-brand header-logo">
-            <img src="../assets/images/logo.svg" alt="" className="logo images" />
-            <img src="../assets/images/logo-icon.svg" alt="" className="logo-thumb images" />
+            <img src="../assets/images/logo.svg" alt="Library Logo" className="logo images" loading="lazy" decoding="async" />
+            <img src="../assets/images/logo-icon.svg" alt="Library Icon" className="logo-thumb images" loading="lazy" decoding="async" />
             <a
               className="mobile-menu"
               id="mobile-collapse"

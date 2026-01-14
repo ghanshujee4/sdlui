@@ -3,16 +3,13 @@
 // ----------------------
 // React & Router Imports
 // ----------------------
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useCallback } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 // ----------------------
 // Global Styles
 // ----------------------
 import "./App.css";
-import "./index.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 // import StudentRegistrationPopup from './StudentRegistration';
 // const LibraryPolicy = lazy(() => import('./sdl/LibraryPolicy'));
@@ -22,12 +19,17 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 
 // ----------------------
-// Direct Component Imports
+// Eagerly Loaded Components (used in every route)
+// ----------------------
+import Header from "./login/Header";
+import LoadingSpinner from "./utils/LoadingSpinner";
+
+// ----------------------
+// Lazy Loaded Components
 // ----------------------
 const ChatBox = lazy(() => import("./chat/ChatBox"));
 const Dashboard = lazy(() => import("./dashboard/Dashboard"));
 const DashboardChart = lazy(() => import("./charts/DashboardChart"));
-const Header = lazy(() => import("./login/Header"));
 const Layout = lazy(() => import("./login/Layout"));
 const Login = lazy(() => import("./login/Login"));
 const AdminLogin = lazy(() => import("./login/AdminLogin"));
@@ -44,27 +46,26 @@ const StudentRegistration = lazy(() => import("./StudentRegistration"));
 const VideoGenerationBox = lazy(() => import("./utils/VideoGenerationBox"));
 const PaymentQR = lazy(() => import('./utils/PaymentQR'));
 const AppGame = lazy(() => import('./dashboard/AppGame'));
-// ----------------------
-// Lazy Loaded Components
-// ----------------------
 const AdminDashboard = lazy(() => import("./dashboard/AdminDashboard"));
 const LibraryPolicy = lazy(() => import("./sdl/LibraryPolicy"));
 const ShiftSeatChangeRequest = lazy(() =>
   import("./dashboard/ShiftSeatChangeRequest")
 );
-// const MyRequests = lazy(() => import("./dashboard/MyRequests"));
-const MyRequests = lazy(() => import ('./dashboard/MyRequests'))
+const MyRequests = lazy(() => import('./dashboard/MyRequests'));
 
 function App() {
   const navigate = useNavigate();
-  const redHome = () => {
-    navigate('/')
-  }
-  const checkSeatAvailablity = () => {
-    navigate('/seatbooking')
-  }
+  const redHome = useCallback((e) => {
+    e?.preventDefault();
+    navigate('/');
+  }, [navigate]);
+  
+  const checkSeatAvailablity = useCallback((e) => {
+    e?.preventDefault();
+    navigate('/seatbooking');
+  }, [navigate]);
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<LoadingSpinner />}>
       <div>
         <div className="header-blue">
           {/* <nav className="navbar navbar-light navbar-expand-md navigation-clean-search"> */}
@@ -73,13 +74,15 @@ function App() {
             <div className="container-fluid">
               <div>
                 <img
-                  src="./logo.png"  // Ensure the logo file is inside the 'public/' folder
+                  src="./logo.png"
                   alt="Library Logo"
                   className="logo"
-                  style={{ height: "60px" }} // Adjust size & spacing
+                  style={{ height: "60px" }}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
-              <a className="gradient-text gradient-text-logo" href="#" onClick={redHome}>Shastra Digital Library</a>
+              <a className="gradient-text gradient-text-logo" href="/" onClick={redHome}>Shastra Digital Library</a>
               <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navcol-1">
                 <span className="navbar-toggler-icon"></span>
               </button>
@@ -131,9 +134,8 @@ function App() {
             <Route path="sdl/librarypolicy" element={<LibraryPolicy />} />
             <Route path="/shift-seat-request" element={<ShiftSeatChangeRequest />} />
             <Route path="/my-requests/:userId" element={<MyRequests />} />
-            <Route path="/PaymentQR" element={<Suspense fallback={<div>Loading...</div>}><PaymentQR /></Suspense>} />
-            {/* <Route path="/test" element={<Suspense fallback={<div>Loading...</div>}><Test /></Suspense>} /> */}
-            <Route path="/game" element={<Suspense fallback={<div>Loading...</div>}><AppGame /></Suspense>} />
+            <Route path="/PaymentQR" element={<PaymentQR />} />
+            <Route path="/game" element={<AppGame />} />
           </Routes>
         </div>
       </div>
