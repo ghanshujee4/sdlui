@@ -7198,6 +7198,20 @@ table.dataTable tbody > tr.selected td.select-checkbox:after, table.dataTable tb
     margin-top: 10px;
     transition: all 0.3s ease-in-out;
 }
+/* @media screen and (max-width: 640px) {
+    .btn {
+        font-size: 12px;
+    }
+    
+} */
+.btn {
+    padding: 10px 20px;
+    border-radius: 0.25rem;
+    font-size: 14px;
+    margin-bottom: 5px;
+    margin-top: 10px;
+    transition: all 0.3s ease-in-out;
+}
 
 .btn > i {
     margin-right: 12px;

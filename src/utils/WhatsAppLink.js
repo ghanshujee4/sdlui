@@ -1,10 +1,13 @@
 import { FaWhatsapp } from "react-icons/fa";
 import formatDateDDMMYYYY from "./formatDateDDMMYYYY";
+import config from "../config";
 
 const WhatsAppLink = ({ payment, customMessage }) => {
   const mobileWithCountryCode = '+91'+payment?.user?.mobile;
-  const qrLink = `/PaymentQr/${payment?.id}/${payment?.amount}`;
-  const dueDate = new Date(formatDateDDMMYYYY(payment?.dueDate)).toLocaleDateString('en-IN');
+  const qrLink = `${config.BASE_ENV}/PaymentQr/${payment?.id}/${payment?.amount}`;
+  const dueDate = formatDateDDMMYYYY(payment?.dueDate);
+
+  // const dueDate = new Date(formatDateDDMMYYYY(payment?.dueDate)).toLocaleDateString('en-IN');
   // const whatsappMessage = `Hi ${payment?.user?.name}, Your payment is pending from ${formatDateDDMMYYYY(dueDate)} for the amount of ${payment?.amount}. Please make the payment at the earliest.\n Thank you.\n SDL`;
   const whatsappMessage = `Hi ${payment?.user?.name} (${payment?.user?.id}), your payment pending from ${dueDate} is ₹${payment?.amount}. Please pay at the earliest ${qrLink}.\n\nThank you.\nShastra Digital Library 📚`;
   const whatsappURL = `https://wa.me/${mobileWithCountryCode}?text=${encodeURIComponent(whatsappMessage)}`;

@@ -53,6 +53,15 @@
   margin-left: 10px;
 }
 
+@media screen and (max-width: 768px) {
+  .margin-left-10 {
+    margin-left: 5px;
+  }
+  .ms-2 {
+     margin-left: 5px !important; 
+}
+  
+}
 
 .bgimages {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

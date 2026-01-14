@@ -102,7 +102,7 @@ function NotificationBell() {
 
   /* ---------- UI ---------- */
   return (
-    <div className="position-relative d-inline-block ms-2">
+    <div className="position-relative d-inline-block margin-left-10">
       <button
         className="btn btn-primary position-relative"
         onClick={() => setOpen((v) => !v)}
