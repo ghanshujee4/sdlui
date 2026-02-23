@@ -25,6 +25,8 @@ export const logout = (navigate) => {
   localStorage.removeItem("token");
   localStorage.removeItem("userId");
   localStorage.removeItem("role");
+  localStorage.removeItem("adminToken");
+  localStorage.removeItem("adminRole");
 
   // Sync logout across tabs
   window.dispatchEvent(new Event("storage"));

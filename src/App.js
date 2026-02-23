@@ -20,7 +20,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 // const MyRequests = lazy(() => import('./dashboard/MyRequests'));
 
-
+import AdminProtectedRoute from "./dashboard/AdminProtectedRoute";
 // ----------------------
 // Direct Component Imports
 // ----------------------
@@ -44,16 +44,15 @@ const StudentRegistration = lazy(() => import("./StudentRegistration"));
 const VideoGenerationBox = lazy(() => import("./utils/VideoGenerationBox"));
 const PaymentQR = lazy(() => import('./utils/PaymentQR'));
 const AppGame = lazy(() => import('./dashboard/AppGame'));
-// ----------------------
-// Lazy Loaded Components
-// ----------------------
+const RunningText = lazy(() => import("./updates/RunningText"));
 const AdminDashboard = lazy(() => import("./dashboard/AdminDashboard"));
 const LibraryPolicy = lazy(() => import("./sdl/LibraryPolicy"));
 const ShiftSeatChangeRequest = lazy(() =>
   import("./dashboard/ShiftSeatChangeRequest")
 );
 // const MyRequests = lazy(() => import("./dashboard/MyRequests"));
-const MyRequests = lazy(() => import ('./dashboard/MyRequests'))
+const MyRequests = lazy(() => import ('./dashboard/MyRequests'));
+const Counter = lazy(() => import ('./Counter'));
 
 function App() {
   const navigate = useNavigate();
@@ -97,11 +96,14 @@ function App() {
                 <div className="form-group"><label htmlFor="search-field"><i className="fa fa-search text-white"></i></label><input className="form-control search-field" type="search" id="search-field" name="search" /></div>
               </form> */}
               <span className="navbar-text"> <Header /></span>
+              
             </div>
 
           </nav>
         </div>
-
+        <Suspense fallback={<div>Loading...</div>}>
+          <RunningText />
+        </Suspense>
         {/* <div className="bg-red-500 text-white p-4">
         <h1 className='color' style={{color:'#000', cursor:'pointer'}} onClick={redHome}>Shastra Digital Library</h1>
       </div> */}
@@ -113,7 +115,7 @@ function App() {
             <Route path="/adminlogin" element={<AdminLogin />} />
             <Route path='/seatbooking' element={<SeatBooking />} />
             {/* <Route element={<PrivateRoute />}> */}
-              <Route path="/admindashboard" element={<AdminDashboard />} />
+              <Route path="/admindashboard" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
               <Route path="/payments/overduepayments" element={<OverduePayments />} />
               <Route path="/requests-approval" element={<RequestsApproval />} />
               <Route path='/PaymentDashboard' element={<PaymentDashboard />} />
@@ -131,9 +133,10 @@ function App() {
             <Route path="sdl/librarypolicy" element={<LibraryPolicy />} />
             <Route path="/shift-seat-request" element={<ShiftSeatChangeRequest />} />
             <Route path="/my-requests/:userId" element={<MyRequests />} />
-            <Route path="/PaymentQR" element={<Suspense fallback={<div>Loading...</div>}><PaymentQR /></Suspense>} />
+            <Route path="/PaymentQR/:id/:amount" element={<Suspense fallback={<div>Loading...</div>}><PaymentQR /></Suspense>} />
             {/* <Route path="/test" element={<Suspense fallback={<div>Loading...</div>}><Test /></Suspense>} /> */}
             <Route path="/game" element={<Suspense fallback={<div>Loading...</div>}><AppGame /></Suspense>} />
+            <Route path="/counter" element={<Suspense fallback={<div>Loading...</div>}><Counter /></Suspense>} />
           </Routes>
         </div>
       </div>

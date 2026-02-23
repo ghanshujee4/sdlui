@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
-import config from "../config";
 import GrowLoader from "../utils/GrowLoader";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -10,7 +8,7 @@ import "../assets/css/style.css";
 import { FaEdit, FaTrash, FaRegCheckCircle, FaPlusCircle, FaClock, FaSave, FaWhatsapp } from "react-icons/fa";
 import WhatsAppLink from "../utils/WhatsAppLink";
 import formatDateDDMMYYYY from "../utils/formatDateDDMMYYYY";
-import adminAxios from "../utils/axiosInstance";
+import adminAxios from "../login/adminAxios";
 const Payments = () => {
   const { userId } = useParams();
   const navigate = useNavigate();

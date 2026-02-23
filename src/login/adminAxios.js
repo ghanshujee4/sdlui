@@ -58,7 +58,14 @@ adminAxios.interceptors.request.use(
 // 🚪 DO NOT FORCE REDIRECT HERE
 adminAxios.interceptors.response.use(
   (res) => res,
-  (err) => Promise.reject(err)
+  (err) => {
+    if (err.response?.status === 401 || err.response?.status === 403) {
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminRole");
+      window.location.href = "/adminlogin";
+    }
+    return Promise.reject(err);
+  }
 );
 
 export default adminAxios;

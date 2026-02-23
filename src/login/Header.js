@@ -1,76 +1,75 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { logout } from "../utils/authUtils";
+import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import NotificationBell from "./NotificationBell";
-import ChatLauncher from "../chat/ChatLauncher";
-import ChatBox from "../chat/ChatBox";
 
 const Header = () => {
-  const [showChatBox, setShowChatBox] = useState(false);
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token") || !!localStorage.getItem("adminToken"));
+  const location = useLocation();
 
+  const checkAuth = () =>
+    !!localStorage.getItem("token") || !!localStorage.getItem("adminToken");
+
+  const [isLoggedIn, setIsLoggedIn] = useState(checkAuth());
+
+  // 🔁 Re-check auth on every route change
   useEffect(() => {
-    const handleStorageChange = () => {
-      setIsLoggedIn(!!localStorage.getItem("token") || !!localStorage.getItem("adminToken"));
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+    setIsLoggedIn(checkAuth());
+  }, [location.pathname]);
 
   const handleLogout = () => {
-    logout(navigate);
-    localStorage.removeItem("token"); // Ensure token is removed
-    localStorage.removeItem("userId"); // Remove any related user data
-    localStorage.removeItem("role"); // Remove Role related user data
-    localStorage.removeItem("adminToken"); // Ensure admin token is removed
-    localStorage.removeItem("adminRole"); // Remove Role related user data
-    setIsLoggedIn(false); // Ensure state updates immediately
-    window.dispatchEvent(new Event("storage")); // Notify all tabs
-  };
-  const onLoginClick = () => {
-    
-    navigate("/login");
+    localStorage?.removeItem("token");
+    localStorage?.removeItem("userId");
+    localStorage?.removeItem("role");
+    localStorage?.removeItem("adminToken");
+    localStorage?.removeItem("adminRole");
 
-  }
-  
+    setIsLoggedIn(false);
+    navigate("/login");
+  };
 
   return (
     <header>
       <div>
         {isLoggedIn ? (
-          <button onClick={handleLogout} className="btn btn-danger bg-danger pull-left margin-left-10">
+          <button
+            onClick={handleLogout}
+            className="btn btn-danger pull-left"
+          >
             Logout
           </button>
         ) : (
-          <button onClick={onLoginClick} className="btn btn-primary bg-primary btn-md active pull-left margin-left-10" aria-pressed="true">
+          <button
+            onClick={() => navigate("/login")}
+            className="btn btn-primary pull-left margin-left-10"
+          >
             Login
           </button>
         )}
-        
-        <button className="btn card btn-light bg-light pull-left margin-left-10" href="#" onClick={() => navigate("/")}>
-          Register 
-        </button>
+
         <button
-          className="btn bg-success bg-success pull-left margin-left-10"
+          className="btn btn-light pull-left margin-left-10"
+          onClick={() => navigate("/")}
+        >
+          Register
+        </button>
+
+        <button
+          className="btn btn-success pull-left margin-left-10"
           onClick={() => {
             const adminToken = localStorage.getItem("adminToken");
-            const adminRole = localStorage.getItem("adminRole"); // Get role from local storage
+            const adminRole = localStorage.getItem("adminRole");
             if (adminToken && adminRole === "ADMIN") {
-              navigate("/admindashboard"); // Redirect to admin dashboard
+              navigate("/admindashboard");
             } else {
-              navigate("/adminlogin"); // Redirect to login if not admin
+              navigate("/adminlogin");
             }
           }}
         >
-          Admin 
-
+          Admin
         </button>
-        
-              <NotificationBell />
-              {/* <ChatLauncher onClick={() => setShowChatBox((v) => !v)} /> */}
-              {/* {showChatBox && <ChatBox />} */}
+
+       {isLoggedIn && <NotificationBell />}
+
       </div>
     </header>
   );

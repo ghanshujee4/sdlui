@@ -8,10 +8,11 @@ import { useNavigate } from "react-router-dom";
 import "../assets/css/style.css";
 import "./../assets/glowonhover.css";
 import formatDateDDMMYYYY from "../utils/formatDateDDMMYYYY";
-
+ import { useMemo } from "react";
 const AdminDashboard = () => {
   const navigate = useNavigate();
-
+  const [sortKey, setSortKey] = useState('name');
+  const [ascending, setAscending] = useState(true);
   // State declarations
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
@@ -44,7 +45,16 @@ const AdminDashboard = () => {
 
     setAuthReady(true);
   }, [navigate]);
-
+  // SortKey type removed for JS compatibility
+const handleSort = (key) => {
+  alert("Sorting by " + key);
+  if (key === sortKey) {
+    setAscending((prev) => !prev);
+  } else {
+    setSortKey(key);
+    setAscending(true);
+  }
+};
 
   useEffect(() => {
     if (!authReady) return;
@@ -103,7 +113,35 @@ if (!authReady) return;
         console.error("Error fetching users:", err);
         setLoading(false);
       });
-  };
+ 
+    }
+
+
+const sortedUsers = useMemo(() => {
+  return [...users].sort((a, b) => {
+    // 1️⃣ First: Registered users on top
+    if (a.isRegistered === 'Y' && b.isRegistered !== 'Y') return -1;
+    if (a.isRegistered !== 'Y' && b.isRegistered === 'Y') return 1;
+
+    let aValue = "";
+    let bValue = "";
+
+    if (sortKey === "name") {
+      aValue = a.name || "";
+      bValue = b.name || "";
+    } else if (sortKey === "email") {
+      aValue = a.email || "";
+      bValue = b.email || "";
+    } else {
+      aValue = a.seat || "";
+      bValue = b.seat || "";
+    }
+
+    const result = aValue.localeCompare(bValue);
+    return ascending ? result : -result;
+  });
+}, [users, sortKey, ascending]);
+
 
   // Toggle filter mode among all, registered, unregistered
   const handleUserIsRegistered = () => {
@@ -211,14 +249,7 @@ if (!authReady) return;
   const navigateToDue = () => navigate("../payments/overduePayments");
 
   // Prepare filtered users list
-  const filteredUsers = users
-    .slice()
-    .sort((a, b) => {
-      if (a.isRegistered === 'Y' && b.isRegistered !== 'Y') return -1;
-      if (a.isRegistered !== 'Y' && b.isRegistered === 'Y') return 1;
-      // sort by seat number ascending
-      return (parseInt(a.seat || 0, 10) - parseInt(b.seat || 0, 10));
-    })
+  const filteredUsers = sortedUsers
     .filter(u =>
       (`${u.name} ${u.email} ${u.id} ${u.seat} ${u.shift} ${u.mobile}`).toLowerCase().includes(search.toLowerCase())
     )
@@ -303,13 +334,13 @@ if (!authReady) return;
             <thead>
               <tr>
                 <th style={{ cursor: "pointer" }}>User ID</th>
-                <th>Name</th>
+                <th onClick={() => handleSort("name")}>Name</th>
                 <th>Admission Date</th>
-                <th>Email</th>
+                <th onClick={() => handleSort("email")}>Email</th>
                 <th>Password</th>
                 <th>Mobile</th>
                 <th>Shift</th>
-                <th>Seat</th>
+                <th onClick={() => handleSort("seat")}>Seat</th>
                 <th>Extra</th>
                 <th>Actions</th>
               </tr>

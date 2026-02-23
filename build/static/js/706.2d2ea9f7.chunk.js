@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[706],{3706:(e,n,r)=>{r.r(n),r.d(n,{default:()=>a});r(5043);var s=r(579);const a=e=>{let{children:n}=e;return(0,s.jsx)(s.Fragment,{children:(0,s.jsx)("main",{className:"container-fluid mt-4",children:n})})}}}]);
-//# sourceMappingURL=706.2d2ea9f7.chunk.js.map

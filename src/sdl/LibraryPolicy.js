@@ -15,16 +15,16 @@ const LibraryPolicy = () => {
 
           <ul className="list-group list-group-flush mb-4">
             <li className="list-group-item">
-              <strong>1. Admission & Attendance:</strong> Students must register online and sign in daily at the front desk. Regular attendance ensures seat retention.
+              <strong>1. Admission & Attendance:</strong> Students must register online and sign in daily at the Register front desk. Regular attendance ensures seat retention.
             </li>
             <li className="list-group-item">
-              <strong>2. Library Timings:</strong> The library is open 24×7 for registered members. Please respect quiet hours and avoid loud conversation.
+              <strong>2. Library Timings:</strong> The library is open 7am to 10pm for registered members. <a>Please maintain your requested shift hours and avoid loud conversation.</a>
             </li>
             <li className="list-group-item">
-              <strong>3. Seat & Shift Allocation:</strong> Seats are assigned based on shift preference. Shifts may be changed only through an approved seat-shift request.
+              <strong>3. Seat & Shift Allocation:</strong> Seats are assigned based on shift preference. Shifts changed only through an approved seat-shift request.
             </li>
             <li className="list-group-item">
-              <strong>4. Payment Policy:</strong> Monthly payments should be cleared before the due date. Failure to pay may result in seat cancellation or deactivation.
+              <strong>4. Payment Policy:</strong> Monthly payments should be cleared before the due date. Failure to pay may result in seat deactivation.
             </li>
             <li className="list-group-item">
               <strong>5. Cleanliness & Decorum:</strong> Maintain a quiet and clean environment. Eating or sleeping inside the study hall is not allowed.

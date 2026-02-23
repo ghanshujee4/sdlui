@@ -64,10 +64,17 @@ function NotificationBell() {
   useEffect(() => {
     if (adminRole !== "ADMIN") return;
 
+    const token = localStorage.getItem("adminToken");
+    if (!token) return; // 🚨 do not connect without token
+
     const client = new Client({
       webSocketFactory: () =>
         new SockJS(`${config.BASE_ENV}/ws`),
-      reconnectDelay: 5000,
+      connectHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
+
+      reconnectDelay: 10000,
     });
 
     client.onConnect = () => {
@@ -104,7 +111,7 @@ function NotificationBell() {
   return (
     <div className="position-relative d-inline-block ms-2">
       <button
-        className="btn btn-primary position-relative"
+        className="btn btn-primary position-relative padding-xs-0"
         onClick={() => setOpen((v) => !v)}
       >
         <FaBell size={18} />
@@ -123,21 +130,19 @@ function NotificationBell() {
           {/* tabs */}
           <div className="d-flex border-bottom">
             <button
-              className={`btn btn-sm flex-fill ${
-                activeTab === "RECENT"
+              className={`btn btn-sm flex-fill ${activeTab === "RECENT"
                   ? "btn-light fw-bold"
                   : "btn-white"
-              }`}
+                }`}
               onClick={() => setActiveTab("RECENT")}
             >
               Recent
             </button>
             <button
-              className={`btn btn-sm flex-fill ${
-                activeTab === "HISTORY"
+              className={`btn btn-sm flex-fill ${activeTab === "HISTORY"
                   ? "btn-light fw-bold"
                   : "btn-white"
-              }`}
+                }`}
               onClick={() => setActiveTab("HISTORY")}
             >
               History (15+ days)
@@ -151,10 +156,10 @@ function NotificationBell() {
           >
             {(activeTab === "RECENT" ? recent : history).length ===
               0 && (
-              <li className="p-3 text-muted text-center">
-                No notifications
-              </li>
-            )}
+                <li className="p-3 text-muted text-center">
+                  No notifications
+                </li>
+              )}
 
             {(activeTab === "RECENT" ? recent : history).map(
               (n, i) => (

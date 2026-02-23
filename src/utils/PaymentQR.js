@@ -1,10 +1,18 @@
 import {React, useState} from "react";
 import { QRCodeCanvas } from "qrcode.react"; 
+import { useParams } from "react-router-dom";
 
 const PaymentQR = ({ userId, userName, amount }) => {
     const [showModal, setShowModal] = useState(false);
+      // ✅ fallback to URL if props not provided
+  const params = useParams();
+
+  const finalAmount = amount || params.amount;
+  const finalUserId = userId || params.id;
+
+  const finalUserName = userName || params.userName;
   // Example: your backend payment URL
-  const upiLink = `upi://pay?pa=Q362873870@ybl&pn=PhonePeMerchant&mc=0000&mode=02&purpose=00&am=${amount}&cu=INR&tn=Payment%20for%20${userName}`;
+  const upiLink = `upi://pay?pa=Q362873870@ybl&pn=PhonePeMerchant&mc=0000&mode=02&purpose=00&am=${finalAmount}&cu=INR&tn=Payment%20for%20${finalUserName}`;
 
 
   return (
@@ -48,7 +56,7 @@ const PaymentQR = ({ userId, userName, amount }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <QRCodeCanvas value={upiLink} size={250} includeMargin={true} />
-            <p style={{ marginTop: "10px" }}>Scan to pay {userName}</p>
+            <p style={{ marginTop: "10px" }}>Scan to pay {finalUserName}</p>
             <button
               onClick={() => setShowModal(false)}
               style={{

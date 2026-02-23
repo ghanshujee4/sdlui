@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import './../App.css';
 import config from "../config";
 import { useNavigate } from "react-router-dom";
@@ -8,8 +7,9 @@ import { FaPrint, FaFileDownload, FaDashcube, FaWhatsapp, FaFilter } from 'react
 import WhatsAppLink from '../utils/WhatsAppLink';
 import PhoneCallLink from '../utils/PhoneCallLink';
 import PaymentQR from '../utils/PaymentQR';
-import axiosInstance from '../utils/axiosInstance';
+import adminAxios from '../login/adminAxios';
 import formatDateDDMMYYYY from '../utils/formatDateDDMMYYYY';
+import AdminWhatsAppSummary from '../utils/AdminWhatsAppSummary';
 
 const OverduePayments = () => {
   const [overduePayments, setOverduePayments] = useState([]);
@@ -44,7 +44,7 @@ const OverduePayments = () => {
   useEffect(() => {
     const fetchOverduePayments = async () => {
       try {
-        const response = await axiosInstance.get(`/payments/overdue`);
+        const response = await adminAxios.get(`/payments/overdue`);
         if (response.status === 200) {
           const filtered = response.data.filter(p => p.user?.isRegistered === 'Y');
           // ✅ Sort oldest to newest (ascending order)
@@ -86,19 +86,6 @@ const OverduePayments = () => {
     newWindow.document.write('</body></html>');
     newWindow.document.close();
     newWindow.print();
-  };
-
-  // 🔹 WhatsApp to all users
-  const sendWhatsAppToAll = () => {
-    overduePayments.forEach((payment, index) => {
-      const mobile = '+91' + payment?.user?.mobile;
-      const qrLink = `/PaymentQr/${payment?.id}/${payment?.amount}`;
-      setTimeout(() => {
-        const message = `Hi ${payment?.user?.name} (${payment?.user?.id}), your payment pending from ${payment?.dueDate} is ₹${payment?.amount}. Please pay at the earliest ${qrLink}.\n\nThank you.\nShastra Digital Library 📚`;
-        const whatsappURL = `https://wa.me/${mobile}?text=${encodeURIComponent(message)}`;
-        window.open(whatsappURL, "_blank");
-      }, index * 2000);
-    });
   };
 
   // 🔹 Download as CSV
@@ -154,9 +141,20 @@ const OverduePayments = () => {
             <button className="btn btn-info me-2" onClick={navigateToDashboard}>
               <FaDashcube className="me-2" /> Dashboard
             </button>
-            <button className="btn btn-success me-2" onClick={sendWhatsAppToAll}>
+            {/* <button className="btn btn-success me-2" onClick={sendWhatsAppToAll}>
               <FaWhatsapp className="me-2" /> Send All
-            </button>
+            </button> */}
+            <AdminWhatsAppSummary
+  payments={filteredPayments}
+  adminNumber="919934614711"   // 👈 Replace with real admin WhatsApp number
+/>
+
+            <WhatsAppLink mode="all" payments={filteredPayments}>
+              <button className="btn btn-success me-2">
+                <FaWhatsapp className="me-2" /> Send All
+              </button>
+            </WhatsAppLink>
+
           </div>
         </div>
       </div>
@@ -243,14 +241,19 @@ const OverduePayments = () => {
                           }}
                           style={{ cursor: "pointer", color: "white", textDecoration: "underline" }}
                         >
-                          {payment.user?.name}
+                          {payment?.user?.name}
                         </a>
                       </td>
-                      <td>{payment.user?.seat} / {payment.user?.shift}</td>
-                      <td>{payment.user?.mobile}</td>
-                      <td>₹{payment.amount}</td>
-                      <td>{new Date(payment.dueDate).toLocaleDateString('en-IN')}</td>
-                      <WhatsAppLink payment={payment} />
+                      <td>{payment?.user?.seat} / {payment?.user?.shift}</td>
+                      <td>{payment?.user?.mobile}</td>
+                      <td>₹{payment?.amount}</td>
+                      <td>{new Date(payment?.dueDate).toLocaleDateString('en-IN')}</td>
+                      {/* <WhatsAppLink payment={payment} /> */}
+                      <td>
+                      <WhatsAppLink payment={payment}>
+                        <FaWhatsapp size={24} color="green" />
+                      </WhatsAppLink>
+                      </td>
                       <PhoneCallLink payment={payment} />
                       <td>
                         {payment.amount > 0 ? (
