@@ -194,7 +194,7 @@ const getRowStyle = (params) => {
           paginationPageSize={25}
           animateRows={true}
           rowSelection="single"
-          // domLayout="autoHeight"
+          domLayout="autoHeight"
         />
       </div>
     </div>

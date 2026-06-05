@@ -12,18 +12,19 @@ import PaymentQR from "./../utils/PaymentQR";
 import AadhaarSection from "./AadhaarSection";
 import LibraryPolicy from "../sdl/LibraryPolicy";
 import ShiftSeatChangeRequestPopup from "./ShiftSeatChangeRequest";
-import {fetchIdCardData, downloadIdCard } from "../utils/DownloadIdCard";
+import { fetchIdCardData, downloadIdCard } from "../utils/DownloadIdCard";
 import axiosInstance from "../utils/axiosInstance";
 import IdCardPreview from "../utils/IdCardPreview";
 // import IdCardExact from "../utils/IdCardExact";
 import html2canvas from "html2canvas";
 import { useRef } from "react";
 import formatDateDDMMYYYY from "../utils/formatDateDDMMYYYY";
+import PaymentRequestButton from "./PaymentRequestButton";
 
 const Dashboard = () => {
 	const [userData, setUserData] = useState(null);
 	const { userId } = useParams();
-	const [paymentData, setPaymentData] = useState('');
+	const [paymentData, setPaymentData] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [formData, setFormData] = useState({
 		name: "", email: "", mobile: "", address: "", purpose: "", shift: "", seat: "", adhar: ""
@@ -35,6 +36,7 @@ const Dashboard = () => {
 	const navigate = useNavigate();
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [showShiftSeatPopup, setShowShiftSeatPopup] = useState(false);
+	const [requests, setRequests] = useState([]);
 	const [idCardData, setIdCardData] = useState(null);
 
 	useEffect(() => {
@@ -43,62 +45,67 @@ const Dashboard = () => {
 		setIsAuthenticated(!!authStatus);
 	}, []);
 
-	  useEffect(() => {
-    const activeUserId = userId || localStorage.getItem("userId");
+	useEffect(() => {
+		const activeUserId = userId || localStorage.getItem("userId");
 
-    if (!activeUserId) {
-      navigate("/login");
-      return;
-    }
+		if (!activeUserId) {
+			navigate("/login");
+			return;
+		}
+		setLoading(true);
 
-    setLoading(true);
+		// 🔹 User
+		axiosInstance
+			.get(`/users/${activeUserId}`)
+			.then((res) => setUserData(res.data))
+			.catch(() => setMessage("Failed to load user"))
+			.finally(() => setLoading(false));
 
-    // 🔹 User
-    axiosInstance
-      .get(`/users/${activeUserId}`)
-      .then((res) => setUserData(res.data))
-      .catch(() => setMessage("Failed to load user"))
-      .finally(() => setLoading(false));
+		// 🔹 Payments
+		axiosInstance
+			.get(`/payments/${activeUserId}`)
+			.then((res) => setPaymentData(res.data))
+			.catch(() => console.error("Payment load failed"));
 
-    // 🔹 Payments
-    axiosInstance
-      .get(`/payments/${activeUserId}`)
-      .then((res) => setPaymentData(res.data))
-      .catch(() => console.error("Payment load failed"));
+		axiosInstance
+			.get(`/requests/${activeUserId}`)
+			.then((res) => setRequests(res.data))
+			.catch(() => console.error("Request load failed"));
+	}, [userId, navigate]);
 
-  }, [userId, navigate]);
 
-  // ✅ UPDATE USER
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    axiosInstance
-      .post(`/users/${userId}`, userData)
-      .then(() => setMessage("Updated successfully"))
-      .catch(() => setMessage("Update failed"));
-  };
 
-  // ✅ DOWNLOAD ID CARD
-//   const downloadIdCard = async () => {
-//     try {
-//       const res = await axiosInstance.get(
-//         `/idcard/download`,
-//         { responseType: "blob" }
-//       );
+	// ✅ UPDATE USER
+	const handleSubmit = (e) => {
+		e.preventDefault();
+		axiosInstance
+			.post(`/users/${userId}`, userData)
+			.then(() => setMessage("Updated successfully"))
+			.catch(() => setMessage("Update failed"));
+	};
 
-//       const url = window.URL.createObjectURL(
-//         new Blob([res.data], { type: "application/pdf" })
-//       );
+	// ✅ DOWNLOAD ID CARD
+	//   const downloadIdCard = async () => {
+	//     try {
+	//       const res = await axiosInstance.get(
+	//         `/idcard/download`,
+	//         { responseType: "blob" }
+	//       );
 
-//       const a = document.createElement("a");
-//       a.href = url;
-//       a.download = "SDL_ID_CARD.pdf";
-//       a.click();
+	//       const url = window.URL.createObjectURL(
+	//         new Blob([res.data], { type: "application/pdf" })
+	//       );
 
-//       window.URL.revokeObjectURL(url);
-//     } catch (err) {
-//       alert("Unable to download ID Card");
-//     }
-// }
+	//       const a = document.createElement("a");
+	//       a.href = url;
+	//       a.download = "SDL_ID_CARD.pdf";
+	//       a.click();
+
+	//       window.URL.revokeObjectURL(url);
+	//     } catch (err) {
+	//       alert("Unable to download ID Card");
+	//     }
+	// }
 	// const adharCard = userData.adharCard;
 	const handleDownloadAdhar = async () => {
 		let fileUrl = userData?.adharCard;
@@ -180,7 +187,7 @@ const Dashboard = () => {
 			}
 		} else {
 			// ✅ Send reactivation request
-			if (!window.confirm("Do you want to request reactivation of your account?")) return;
+			if (!window.confirm("Do you want to request Activation of your account?")) return;
 
 			try {
 				await axiosInstance.post(
@@ -220,49 +227,57 @@ const Dashboard = () => {
 			alert("❌ Failed to send shift change request.");
 		}
 	};
-useEffect(() => {
-	if(userData?.isRegistered === "Y"){
-    fetchIdCardData()
-      .then(setIdCardData)
-  }
-}, [userData]);
+	useEffect(() => {
+		if (userData?.isRegistered === "Y") {
+			fetchIdCardData()
+				.then(setIdCardData)
+		}
+	}, [userData]);
 
-  const cardRef = useRef();
+	const cardRef = useRef();
 
-  const downloadSnapshot = async () => {
-    if (!cardRef.current) return;
+	const downloadSnapshot = async () => {
+		if (!cardRef.current) return;
 
-    const canvas = await html2canvas(cardRef.current, {
-      scale: 3,              // HIGH QUALITY
-      useCORS: true,
-      backgroundColor: null,
-    });
+		const canvas = await html2canvas(cardRef.current, {
+			scale: 3,              // HIGH QUALITY
+			useCORS: true,
+			backgroundColor: null,
+		});
 
-    const image = canvas.toDataURL("image/png");
+		const image = canvas.toDataURL("image/png");
 
-    const link = document.createElement("a");
-    link.href = image;
-    link.download = "SDL_ID_CARD.png";
-    link.click();
-  };
+		const link = document.createElement("a");
+		link.href = image;
+		link.download = "SDL_ID_CARD.png";
+		link.click();
+	};
 
 
-const SHIFT_TIME_MAP = {
-  "1": "1st : 7:00 AM – 12:00 PM",
-  "SHIFT1": "1st : 7:00 AM – 12:00 PM",
+	const SHIFT_TIME_MAP = {
+		"1": "1st : 7:00 AM – 12:00 PM",
+		"SHIFT1": "1st : 7:00 AM – 12:00 PM",
 
-  "2": "2nd : 12:00 PM – 5:00 PM",
-  "SHIFT2": "2nd : 12:00 PM – 5:00 PM",
+		"2": "2nd : 12:00 PM – 5:00 PM",
+		"SHIFT2": "2nd : 12:00 PM – 5:00 PM",
 
-  "3": "3rd : 5:00 PM – 10:00 PM",
-  "SHIFT3": "3rd : 5:00 PM – 10:00 PM",
+		"3": "3rd : 5:00 PM – 10:00 PM",
+		"SHIFT3": "3rd : 5:00 PM – 10:00 PM",
 
-  "4": "4th : 8:00 AM – 2:30 PM",
-  "SHIFT4": "4th : 8:00 AM – 2:30 PM",
+		"4": "4th : 8:00 AM – 2:30 PM",
+		"SHIFT4": "4th : 8:00 AM – 2:30 PM",
 
-  "5": "5th : 2:00 PM – 8:30 PM (Flexi Seats)",
-  "SHIFT5": "5th : 2:00 PM – 8:30 PM (Flexi Seats)",
-};
+		"5": "5th : 2:00 PM – 8:30 PM (Flexi Seats)",
+		"SHIFT5": "5th : 2:00 PM – 8:30 PM (Flexi Seats)",
+	};
+
+	const hasPendingActivationOrDeactivation = requests?.some(
+		(r) => ["DEACTIVATION", "REACTIVATION"].includes(r.type) && r.status === "PENDING"
+	) || false;
+
+	const hasPendingSeatShift = requests?.some(
+		(r) => r.type === "SEAT_SHIFT" && r.status === "PENDING"
+	) || false;
 
 	return (
 		<>
@@ -396,7 +411,7 @@ const SHIFT_TIME_MAP = {
 																<div className="progress-bar progress-c-blue" role="progressbar" style={{ width: "60%", height: "6px" }} aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
 															</div>
 														</div>
-														
+
 														<div className="col-6">
 															<h6 className="text-center  m-b-10"><span className="text-muted m-r-5">Shift: </span>{SHIFT_TIME_MAP[userData?.shift] ?? userData?.shift}</h6>
 															<div className="progress">
@@ -449,13 +464,13 @@ const SHIFT_TIME_MAP = {
 										</div>
 										<div className="col-md-6 col-xl-4">
 											<div className="card card-social">
-												
+
 												<div className="card-block">
 													<div className="row align-items-center justify-content-center card-active">
 
-{userData?.isRegistered === "Y" && paymentData.length > 0 && (
-<IdCardPreview user={idCardData} ref={cardRef} onDownload={downloadSnapshot} />
-)}
+														{userData?.isRegistered === "Y" && paymentData.length > 0 && (
+															<IdCardPreview user={idCardData} ref={cardRef} onDownload={downloadSnapshot} />
+														)}
 													</div>
 												</div>
 											</div>
@@ -485,7 +500,9 @@ const SHIFT_TIME_MAP = {
 																				className="feather icon-help-circle f-16"></i></a></span></th>
 																			{/* <th><span>User Name <a className="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i
 																				className="feather icon-help-circle f-16"></i></a></span></th> */}
-																			<th><span>Mode <a className="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i
+																			<th><span>Pay Here<a className="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i
+																				className="feather icon-help-circle f-16"></i></a></span></th>
+																				<th><span>Payment Mode <a className="help" data-toggle="popover" title="Popover title" data-content="And here's some amazing content. It's very engaging. Right?"><i
 																				className="feather icon-help-circle f-16"></i></a></span></th>
 																		</tr>
 																	</thead>
@@ -503,12 +520,25 @@ const SHIFT_TIME_MAP = {
 																				<td>
 																					{payment.amount > 0 && !payment.paid ? (
 																						<PaymentQR
-																							userId={payment.id}
-																							userName={payment.user.name}
-																							amount={payment.amount}
+																							userId={payment?.user?.id}
+																							paymentId={payment?.id}
+																							userName={payment?.user?.name}
+																							amount={payment?.amount}
 																						/>
 																					) : (
 																						"--"
+																					)}
+																				</td>
+																				<td>
+																					{payment.status === "PENDING" ? (
+																						<span className="badge bg-warning">Pending Approval</span>
+																					) : payment.paid ? (
+																						<span className="badge bg-success">Paid</span>
+																					) : (
+																						<PaymentRequestButton
+																							userId={userData?.id}
+																							paymentId={payment.id}
+																						/>
 																					)}
 																				</td>
 																			</tr>
@@ -591,7 +621,8 @@ const SHIFT_TIME_MAP = {
 										: "btn-success glow-on-hover bg-sucess cursor"
 										}`}
 									onClick={handleDeactivationRequest}
-									disabled={loading}
+									disabled={loading || hasPendingActivationOrDeactivation}
+										title={hasPendingActivationOrDeactivation ? "A pending activation/deactivation request is already under review." : ""}
 								>
 									{/* {loading ? "Submitting..." : ""}
 									{userData?.isRegistered === "Y"
@@ -599,8 +630,8 @@ const SHIFT_TIME_MAP = {
 										: "✅ Request Reactivation"} */}
 									{loading
 										? "Submitting..."
-										: userData?.requestStatus === "PENDING"
-											? "⏳ Request Pending"
+										: hasPendingActivationOrDeactivation
+											? "⏳ Pending Approval"
 											: userData?.isRegistered === "Y"
 												? "💤 Request Deactivation"
 												: "✅ Request Reactivation"}
@@ -609,8 +640,10 @@ const SHIFT_TIME_MAP = {
 								<button
 									className="btn btn-info glow-on-hover bg-sucess"
 									onClick={() => setShowShiftSeatPopup(true)}
-								>
-									🔄 Request Shift/Seat Change
+										disabled={loading || hasPendingSeatShift}
+										title={hasPendingSeatShift ? "A pending seat/shift request is already under review." : ""}
+									>
+										{hasPendingSeatShift ? "⏳ Pending Approval" : "🔄 Request Shift/Seat Change"}
 								</button>
 								{/* <div className="mt-3"> */}
 								<button
@@ -619,6 +652,16 @@ const SHIFT_TIME_MAP = {
 								>
 									📋 View My Requests
 								</button>
+								{/* {paymentData.requestStatus === "PENDING" ? (
+  <span className="badge bg-warning">Pending Approval</span>
+) : paymentData.paid ? (
+  <span className="badge bg-success">Paid</span>
+) : (
+  <PaymentRequestButton
+    userId={userData?.id}
+    paymentId={paymentData?.id}
+  />
+)} */}
 								{/* </div> */}
 
 							</div>

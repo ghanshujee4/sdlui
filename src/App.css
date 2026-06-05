@@ -63,7 +63,7 @@
   padding: 0 10px;
 }
 
-@import url("https://fonts.googleapis.com/css2?family=Poppins:weight@100;200;300;400;500;600;700;800&display=swap");
+/* Poppins loaded via public/index.html to avoid invalid @import URL and CORB issues */
 
  .bg-red-200 {
   background: radial-gradient(#a53636, transparent);

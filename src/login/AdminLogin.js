@@ -29,9 +29,6 @@ const AdminLogin = () => {
       );
 
       const { token, userId, role } = res.data;
-      console.log("adminToken", token);
-      console.log("adminUserId", userId);
-      console.log("adminRole", role);
       if (token && role === "ADMIN") {
         // 🔐 Store ADMIN session
         localStorage.setItem("adminToken", token);

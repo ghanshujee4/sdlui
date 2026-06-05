@@ -24,7 +24,7 @@ const LibraryPolicy = () => {
               <strong>3. Seat & Shift Allocation:</strong> Seats are assigned based on shift preference. Shifts changed only through an approved seat-shift request.
             </li>
             <li className="list-group-item">
-              <strong>4. Payment Policy:</strong> Monthly payments should be cleared before the due date. Failure to pay may result in seat deactivation.
+              <strong>4. Payment Policy:</strong> Monthly payments should be cleared before the due date.<a style={{ color: "red" }}> Please make the payment within 3 days to avoid deactivation of your ID.</a>
             </li>
             <li className="list-group-item">
               <strong>5. Cleanliness & Decorum:</strong> Maintain a quiet and clean environment. Eating or sleeping inside the study hall is not allowed.

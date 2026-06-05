@@ -59,4 +59,3 @@ WeakMap()){
 
 }
   console.log(deepCopy(dummyData));
-console.log("Try programiz.pro")

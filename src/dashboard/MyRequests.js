@@ -61,15 +61,27 @@ const MyRequests = () => {
   // };
 
   const formatDateDDMMYYYY = (dateStr) => {
-  if (!dateStr) return "--";
+    if (!dateStr) return "--";
 
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
+    const d = new Date(dateStr);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
 
-  return `${day}-${month}-${year}`;
-};
+    return `${day}-${month}-${year}`;
+  };
+
+  const getRequestTypeLabel = (type) => {
+    switch (type) {
+      case "SEAT_SHIFT":
+        return "Seat/Shift Change";
+      case "REACTIVATION":
+        return "Reactivation";
+      case "DEACTIVATION":
+      default:
+        return "Deactivation";
+    }
+  };
 
 
   if (loading) {
@@ -113,9 +125,7 @@ const MyRequests = () => {
                   {requests.map((req, index) => (
                     <tr key={req.id}>
                       <td>{index + 1}</td>
-                      <td>
-                        {req.type === "SEAT_SHIFT" ? "Seat/Shift Change" : "Deactivation"}
-                      </td>
+                      <td>{getRequestTypeLabel(req.type)}</td>
                       <td>{req.details}</td>
                       <td>{formatDateDDMMYYYY(req.createdAt)}</td>
                       <td>

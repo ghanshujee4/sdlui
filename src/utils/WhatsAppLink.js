@@ -36,11 +36,11 @@ const WhatsAppLink = ({
     const diffDays = due
       ? Math.floor((today - due) / (1000 * 60 * 60 * 24))
       : 0;
-    const qrLink = `${config?.ENV_FRONT}/PaymentQr/${p?.id}/${p?.amount}`;
+    const qrLink = `${config?.ENV_FRONT}/PaymentQr/${p?.user?.id}/${p?.amount}`;
     const diffPaymentDate = paymentDate
       ? Math.floor((today - paymentDate) / (1000 * 60 * 60 * 24))
       : 0;
-
+      
     const message =
       diffDays > 5 && amount >= 250
         ? `Hi ${p?.user?.name} (${p?.user?.id}), your payment pending from ${formattedDueDate} is ₹${amount}. Please pay at the earliest ${qrLink} to avoid deactivation.

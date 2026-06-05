@@ -14,6 +14,7 @@ const isOlderThanDays = (dateStr, days) => {
 
 const normalizeNotifications = (data) => {
   if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.content)) return data.content;
   if (Array.isArray(data?.data)) return data.data;
   return [];
 };
@@ -43,7 +44,7 @@ function NotificationBell() {
 
     const token = localStorage.getItem("adminToken");
 
-    fetch(`${config.BASE_ENV}/notifications`, {
+    fetch(`${config.BASE_API_ROOT}/notifications`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -78,7 +79,7 @@ function NotificationBell() {
     });
 
     client.onConnect = () => {
-      client.subscribe("/topic/notifications", (msg) => {
+      client.subscribe("/topic/notifications/admin", (msg) => {
         const n = JSON.parse(msg.body);
         setNotifications((prev) => [n, ...prev]);
         setUnreadCount((prev) => prev + 1);
@@ -90,6 +91,28 @@ function NotificationBell() {
 
     return () => client.deactivate();
   }, [adminRole]);
+
+  const markAsRead = async (id) => {
+    const token = localStorage.getItem("adminToken");
+    if (!token || !id) return;
+
+    try {
+      await fetch(`${config.BASE_API_ROOT}/notifications/${id}/read`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      setNotifications((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, read: true } : item))
+      );
+      setUnreadCount((prev) => Math.max(prev - 1, 0));
+    } catch (error) {
+      console.error("Failed to mark notification as read", error);
+    }
+  };
 
   /* 🔔 mark read visually */
   useEffect(() => {
@@ -166,6 +189,8 @@ function NotificationBell() {
                 <li
                   key={i}
                   className="p-3 border-bottom"
+                  onClick={() => markAsRead(n.id)}
+                  style={{ cursor: "pointer" }}
                 >
                   <div className="fw-semibold">
                     {n.message}

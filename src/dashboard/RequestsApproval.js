@@ -50,6 +50,20 @@ const RequestsApproval = () => {
       .finally(() => setLoading(false));
   };
 
+  const handleDelete = (id) => {
+    if (!window.confirm("Are you sure you want to delete this request?")) return;
+
+    setLoading(true);
+    adminAxios
+      .delete(`/requests/${id}`)
+      .then(() => {
+        toast.success("Request deleted successfully");
+        fetchRequests();
+      })
+      .catch(() => toast.error("Failed to delete request"))
+      .finally(() => setLoading(false));
+  };
+
   if (loading) {
     return (
       <div className="text-center mt-5">
@@ -131,7 +145,7 @@ const RequestsApproval = () => {
                     </td>
                     <td>{req.createdAt ? req.createdAt.split("T")[0] : "N/A"}</td>
                     <td>
-                      {req.status === "PENDING" ? (
+                      {req.status !== "APPROVED" && req.status !== "REJECTED" ? (
                         <>
                           <button
                             className="btn btn-success btn-sm me-2"
@@ -140,10 +154,16 @@ const RequestsApproval = () => {
                             Approve
                           </button>
                           <button
-                            className="btn btn-danger btn-sm"
+                            className="btn btn-danger btn-sm me-2"
                             onClick={() => handleAction(req.id, "reject")}
                           >
                             Reject
+                          </button>
+                          <button
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={() => handleDelete(req.id)}
+                          >
+                            Delete
                           </button>
                         </>
                       ) : (

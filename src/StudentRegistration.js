@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axiosInstance from "./utils/axiosInstance";
 import config from "./config";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import MultiSelect from "./MultiSelect";
 import GrowLoader from "./utils/GrowLoader";
 import {
@@ -16,10 +16,12 @@ import LibraryPolicy from "./sdl/LibraryPolicy";
 
 const StudentRegistration = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const emailFromQuery = searchParams.get("email") || "";
 
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
+    email: emailFromQuery,
     age: "",
     mobile: "",
     address: "",
@@ -28,7 +30,7 @@ const StudentRegistration = () => {
     seat: "",
     password: "",
     admissionDate: new Date().toISOString().split("T")[0],
-    extraHour: "",
+    extraHour: 0,
   });
 
   const [shifts, setShifts] = useState([]);
@@ -193,7 +195,10 @@ const StudentRegistration = () => {
       seat: formData.seat,
       password: formData.password,
       admissionDate: formData.admissionDate,
-      extraHour: formData.extraHour,
+      extraHour:
+        formData.extraHour === "" || formData.extraHour == null
+          ? 0
+          : Number(formData.extraHour) || 0,
     };
 
     formDataToSend.append("user", new Blob([JSON.stringify(userData)], { type: "application/json" }));
@@ -216,9 +221,10 @@ const StudentRegistration = () => {
   // ✅ Check form validity
   useEffect(() => {
     const hasNoErrors = Object.values(errors).every((err) => !err);
-    const filled = Object.values(formData).every((val) =>
-      Array.isArray(val) ? val.length > 0 : val?.toString().trim() !== ""
-    );
+    const filled = Object.entries(formData).every(([key, val]) => {
+      if (key === "extraHour") return true;
+      return Array.isArray(val) ? val.length > 0 : val?.toString().trim() !== "";
+    });
     const isAdharValid = adharFile !== null; // required
     setIsFormValid(filled && hasNoErrors && isAdharValid);
   }, [formData, errors, adharFile]);
@@ -258,11 +264,14 @@ const StudentRegistration = () => {
         <MDBCard className="col-sm-12 col-md-6 p-4 shadow-lg rounded-4 border-0">
           <h3 className="text-center gradient-text mb-4">🎓 Join Lotus @ SDL</h3>
 
+          <form onSubmit={handleSubmit} noValidate>
           {/* Basic Inputs */}
           <div className="col-md-12 mb-3">
             <MDBInput
+              id="name"
               label="Name"
               name="name"
+              autoComplete="name"
               value={formData.name}
               onChange={handleChange}
               size="lg"
@@ -273,9 +282,11 @@ const StudentRegistration = () => {
 
           <div className="col-md-12 mb-3">
             <MDBInput
+              id="email"
               type="email"
               label="Email"
               name="email"
+              autoComplete="email"
               value={formData.email}
               onChange={handleChange}
               onBlur={async () => {
@@ -293,9 +304,11 @@ const StudentRegistration = () => {
 
           <div className="col-md-12 mb-3">
             <MDBInput
+              id="age"
               type="number"
               label="Age"
               name="age"
+              autoComplete="off"
               value={formData.age}
               onChange={handleChange}
               size="lg"
@@ -306,8 +319,11 @@ const StudentRegistration = () => {
 
           <div className="col-md-12 mb-3">
             <MDBInput
+              id="mobile"
+              type="tel"
               label="Mobile"
               name="mobile"
+              autoComplete="tel"
               maxLength={10}
               value={formData.mobile}
               onChange={(e) => {
@@ -329,8 +345,10 @@ const StudentRegistration = () => {
 
           <div className="col-md-12 mb-3">
             <MDBInput
+              id="purpose"
               label="Purpose"
               name="purpose"
+              autoComplete="off"
               value={formData.purpose}
               onChange={handleChange}
               size="lg"
@@ -341,9 +359,13 @@ const StudentRegistration = () => {
 
           {/* Aadhaar Upload Beautified */}
           <div className="col-md-12 mb-4">
-            {/* <label className="form-label fw-bold">Upload Aadhaar Card (Optional)</label> */}
+            <label htmlFor="adhar-upload" className="form-label fw-bold">
+              Upload Aadhaar Card
+            </label>
             <div className="input-group">
               <input
+                id="adhar-upload"
+                name="adharFile"
                 type="file"
                 accept="image/jpeg,image/png,application/pdf"
                 onChange={handleFileChange}
@@ -360,8 +382,10 @@ const StudentRegistration = () => {
 
           <div className="col-md-12 mb-3">
             <MDBTextArea
+              id="address"
               label="Enter Complete Address"
               name="address"
+              autoComplete="street-address"
               rows="3"
               value={formData.address}
               onChange={handleChange}
@@ -374,11 +398,12 @@ const StudentRegistration = () => {
           {/* Admission Date */}
           <div className="col-md-12 mb-3">
             <MDBInput
-              
+              id="admissionDate"
               icon="calendar-alt"
               type="date"
               label="Admission Date"
               name="admissionDate"
+              autoComplete="off"
               value={formData.admissionDate}
               onChange={handleChange}
               className="w-100"
@@ -388,12 +413,12 @@ const StudentRegistration = () => {
           {/* Shift Selection */}
           <div className="col-md-12 mb-3">
             <MultiSelect
+              id="shift"
               options={shifts}
               selectedValues={formData.shift}
               onSelect={handleShiftSelect}
               onRemove={handleRemove}
               label="Select Shifts"
-              name="shift"
               placeholder="Select Shift"
             />
             {errors.shift && <div className="text-danger">{errors.shift}</div>}
@@ -413,10 +438,14 @@ const StudentRegistration = () => {
 
         {/* Seat Selection */}
         <div className="col-md-12 mb-3">
+          <label htmlFor="seat" className="form-label">
+            Select Seat
+          </label>
           <select
             id="seat"
             name="seat"
             className="form-select"
+            autoComplete="off"
             value={formData.seat}
             onChange={handleChange}
             onClick={getSeatResponse}
@@ -438,32 +467,27 @@ const StudentRegistration = () => {
             <MDBTooltip
               tag="span"
               wrapperProps={{ className: "d-block" }}
-              title="Allowed range: -1 to +2 hours. ₹100/hour for extra time."
-              // subTitle="(Use -1 for no extra hours)"
+              title="Optional. Defaults to 0 if left blank. ₹100/hour for extra time."
             >
               <MDBInput
                 type="number"
                 id="extraHour"
                 name="extraHour"
                 label="Extra Hours"
+                autoComplete="off"
                 size="lg"
-                min={-1}
-                max={2}
-                step={1}
-                value={formData.extraHour}
+                placeholder="0"
+                value={
+                  formData.extraHour === 0 || formData.extraHour === ""
+                    ? ""
+                    : formData.extraHour
+                }
                 onChange={(e) => {
                   const value = e.target.value;
-
-                  // ✅ If empty → default to 0
-                  if (value === "") {
-                    setFormData((prev) => ({ ...prev, extraHour: 0 }));
-                    return;
-                  }
-                  const val = Number(value);
-                  // ✅ Accept only valid range
-                  if (val >= -1 && val <= 2) {
-                    setFormData((prev) => ({ ...prev, extraHour: val }));
-                  }
+                  setFormData((prev) => ({
+                    ...prev,
+                    extraHour: value === "" ? 0 : Number(value) || 0,
+                  }));
                 }}
               />
             </MDBTooltip>
@@ -473,9 +497,11 @@ const StudentRegistration = () => {
           {/* Password */}
           <div className="col-md-12 mb-3">
             <MDBInput
+              id="password"
               type="password"
               label="Password"
               name="password"
+              autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
               size="lg"
@@ -487,9 +513,10 @@ const StudentRegistration = () => {
 
           {/* Submit */}
           {/* <MDBCard className="col-12 text-center p-3 border-0"> */}
-            <MDBBtn className="btn btn-primary w-100 py-2" onClick={handleSubmit} disabled={!isFormValid}>
+            <MDBBtn type="submit" className="btn btn-primary w-100 py-2" disabled={!isFormValid}>
               Register
             </MDBBtn>
+          </form>
           </MDBCard>
         {/* </MDBCard> */}
 

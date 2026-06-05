@@ -1,5 +1,3 @@
-import React from "react";
-import axios from "axios";
 import { Card, Button } from "react-bootstrap"; // or MDBootstrap if you prefer
 import config from "../config";
 import axiosInstance from "../utils/axiosInstance";

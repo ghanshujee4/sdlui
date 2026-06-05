@@ -1,19 +1,31 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import NotificationBell from "./NotificationBell";
+import StudentNotificationBell from "./StudentNotificationBell";
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const checkAuth = () =>
-    !!localStorage.getItem("token") || !!localStorage.getItem("adminToken");
+  const checkSessionMode = () => {
+    if (localStorage.getItem("adminToken") && localStorage.getItem("adminRole") === "ADMIN") {
+      return "ADMIN";
+    }
+    if (localStorage.getItem("token")) {
+      return "USER";
+    }
+    return null;
+  };
 
-  const [isLoggedIn, setIsLoggedIn] = useState(checkAuth());
+  const [sessionMode, setSessionMode] = useState(checkSessionMode());
 
-  // 🔁 Re-check auth on every route change
+  const syncSessionMode = () => setSessionMode(checkSessionMode());
+
+  // 🔁 Re-check auth on every route change and storage event
   useEffect(() => {
-    setIsLoggedIn(checkAuth());
+    syncSessionMode();
+    window.addEventListener("storage", syncSessionMode);
+    return () => window.removeEventListener("storage", syncSessionMode);
   }, [location.pathname]);
 
   const handleLogout = () => {
@@ -23,9 +35,11 @@ const Header = () => {
     localStorage?.removeItem("adminToken");
     localStorage?.removeItem("adminRole");
 
-    setIsLoggedIn(false);
+    setSessionMode(null);
     navigate("/login");
   };
+
+  const isLoggedIn = sessionMode !== null;
 
   return (
     <header>
@@ -68,7 +82,8 @@ const Header = () => {
           Admin
         </button>
 
-       {isLoggedIn && <NotificationBell />}
+        {sessionMode === "ADMIN" && <NotificationBell />}
+        {sessionMode === "USER" && <StudentNotificationBell />}
 
       </div>
     </header>

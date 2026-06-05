@@ -10,7 +10,7 @@ export const fetchIdCardData = async () => {
 
 const downloadIdCard = async () => {
   try {
-    // Axios interceptor already injects token
+    
     const res = await axiosInstance.get(
       "/idcard/download",
       { responseType: "blob" }

@@ -30,7 +30,10 @@ const AdminDashboard = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userIdToDelete, setUserIdToDelete] = useState(null);
   const [authReady, setAuthReady] = useState(false);
-
+  // Whatsapp Custom message send to all
+  const [showWhatsappModal, setShowWhatsappModal] = useState(false);
+  const [waMessage, setWaMessage] = useState("");
+  const [waFilter, setWaFilter] = useState("all"); // all | registered | unregistered
   // 🔐 AUTH GUARD
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
@@ -45,6 +48,7 @@ const AdminDashboard = () => {
 
     setAuthReady(true);
   }, [navigate]);
+
   // SortKey type removed for JS compatibility
 const handleSort = (key) => {
   alert("Sorting by " + key);
@@ -61,13 +65,6 @@ const handleSort = (key) => {
     fetchUsers();
   }, [authReady]);
 
-
-  // Fetch users on mount if admin
-  // useEffect(() => {
-  //     fetchUsers();
-  // }, []);
-
-  // Fetch shifts on mount
   useEffect(() => {
     // if (!localStorage.getItem("adminToken")) return;
 if (!authReady) return;
@@ -262,10 +259,39 @@ const sortedUsers = useMemo(() => {
   const registeredUsers = users.filter(u => u.isRegistered === 'Y');
   const unregisteredUsers = users.filter(u => u.isRegistered !== 'Y');
 
-  // Loading screen
-  // if (loading) {
-  //   return <div className="text-center mt-5"><GrowLoader /></div>;
-  // }
+const handleSendWhatsApp = () => {
+  let targetUsers = users;
+
+  if (waFilter === "registered") {
+    targetUsers = users.filter(u => u.isRegistered === "Y");
+  } else if (waFilter === "unregistered") {
+    targetUsers = users.filter(u => u.isRegistered !== "Y");
+  }
+
+  if (!waMessage.trim()) {
+    alert("Please enter message");
+    return;
+  }
+
+  targetUsers.forEach(user => {
+    if (!user.mobile) return;
+
+// ✅ 
+    const phone = String(user.mobile).replace(/\D/g, "");
+
+    if (phone.length < 10) return; // skip invalid numbers
+
+    const message = encodeURIComponent(
+      `Hi ${user.name},\n${waMessage}`
+    );
+
+    const url = `https://wa.me/91${phone}?text=${message}`;
+
+    window.open(url, "_blank");
+  });
+
+  setShowWhatsappModal(false);
+};
 
   return (
     <>
@@ -282,6 +308,15 @@ const sortedUsers = useMemo(() => {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
+        <div className="col-sm-2 float-left">
+  <Card
+    className="badge bg-success text-wrap select2-container glow-on-hover"
+    style={{ fontSize: 22, cursor: "pointer" }}
+    onClick={() => setShowWhatsappModal(true)}
+  >
+    Send WhatsApp
+  </Card>
+</div>
 
         <div className="col-sm-2 float-left">
           <Card
@@ -457,6 +492,53 @@ const sortedUsers = useMemo(() => {
           <Button variant="danger" onClick={handleDeleteConfirmed}>Yes, Delete</Button>
         </Modal.Footer>
       </Modal>
+
+      <Modal
+  show={showWhatsappModal}
+  onHide={() => setShowWhatsappModal(false)}
+  centered
+>
+  <Modal.Header closeButton>
+    <Modal.Title>Send WhatsApp Message</Modal.Title>
+  </Modal.Header>
+
+  <Modal.Body>
+    {/* Filter Options */}
+    <div className="mb-3">
+      <label>Select Users:</label>
+      <select
+        className="form-select"
+        value={waFilter}
+        onChange={(e) => setWaFilter(e.target.value)}
+      >
+        <option value="all">All Users</option>
+        <option value="registered">Registered Users</option>
+        <option value="unregistered">Unregistered Users</option>
+      </select>
+    </div>
+
+    {/* Message Box */}
+    <div className="mb-3">
+      <label>Message:</label>
+      <textarea
+        className="form-control"
+        rows="4"
+        placeholder="Enter your message..."
+        value={waMessage}
+        onChange={(e) => setWaMessage(e.target.value)}
+      />
+    </div>
+  </Modal.Body>
+
+  <Modal.Footer>
+    <Button variant="secondary" onClick={() => setShowWhatsappModal(false)}>
+      Cancel
+    </Button>
+    <Button variant="success" onClick={handleSendWhatsApp}>
+      Send
+    </Button>
+  </Modal.Footer>
+</Modal>
     </>
   );
 };

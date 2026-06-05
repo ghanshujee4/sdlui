@@ -6,7 +6,9 @@ const MultiSelect = ({
   selectedValues,
   onSelect,
   onRemove,
-  placeholder
+  placeholder,
+  label,
+  id = "multiselect-shift",
 }) => {
 
   const multiSelectRef = useRef(null);
@@ -23,10 +25,17 @@ const MultiSelect = ({
   };
 
   return (
-    <div style={{ margin: '0px 0' }}>
+    <div style={{ margin: "0px 0" }}>
+      {label && (
+        <label id={`${id}-label`} className="form-label">
+          {label}
+        </label>
+      )}
       <Multiselect
+        id={id}
         ref={multiSelectRef}
         options={options}
+        aria-labelledby={label ? `${id}-label` : undefined}
         displayValue="name"
         selectedValues={selectedValues}
         onSelect={handleSelect}
